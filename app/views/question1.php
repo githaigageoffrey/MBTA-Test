@@ -1,4 +1,4 @@
-<h4>Dashboard  Vs Rely on Server</h4>
+<h4>Download  Vs Rely on Server</h4>
 <h6>"subway" routes:
 "Light Rail" (type 0) and "Heavy Rail" (type 1)</h6>
 <div class="row">
@@ -9,7 +9,7 @@
           <tr>
             <th>#</th>
             <th>Long Name</th>
-            <th>Type</th>
+            <th>Subway</th>
           </tr>
         </thead>
         <tbody>

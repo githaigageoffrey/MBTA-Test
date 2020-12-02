@@ -10,7 +10,6 @@ class Home extends CI_Controller{
 	protected $data;
 	function __construct(){
 		parent::__construct();
-
 		$this->load->model('routes_m');
 		$this->template = "template/default";
 		$this->data['subways'] = $this->subways;
@@ -27,6 +26,13 @@ class Home extends CI_Controller{
 		$this->data['routes'] = $this->routes_m->get_all_routes();
 		$this->data['title'] = 'Question 1';
 		$this->data["main_content"] = "question1";
+		$this->load->view($this->template,$this->data);
+	}
+
+	function question2(){
+		$this->data['subway'] = $this->routes_m->get_routes_and_stops();
+		$this->data['title'] = 'Question 2';
+		$this->data["main_content"] = "question2";
 		$this->load->view($this->template,$this->data);
 	}
 
