@@ -38,7 +38,6 @@ class Routes_m extends CI_Model{
 				}
 			}
 		}
-		//print_r($arr[0]);
 		$count = array(
 			'count' => array(
 				0 => count($arr[0]).' - '.(count($arr[0])>count($arr[1])?"Most":"Least"),
@@ -46,8 +45,52 @@ class Routes_m extends CI_Model{
 			),
 		);
 		$arr = $arr+$count;
-		//print_r($arr);die;
 		return ($arr);
+	}
+
+	function route_combination(){
+		$arr = array();
+		if($routes = get_routes()){
+			foreach ($routes as $key => $route) {
+				$attributes = $route->attributes;
+				if($attributes->type == 1){
+					$arr[$attributes->type]["from"][] = str_replace("/", " ",$attributes->direction_destinations[0]);
+					$arr[$attributes->type]["to"][] = str_replace("/", " ",$attributes->direction_destinations[1]);
+				}else if($attributes->type == 0){
+					$arr[$attributes->type]["from"][] = str_replace("/", " ",$attributes->direction_destinations[0]);
+					$arr[$attributes->type]["to"][] = str_replace("/", " ",$attributes->direction_destinations[1]);
+				}
+			}
+		}
+		$connection1 = array();
+		$connection2 = array();
+		$rail0 = $arr[0];
+		$rail1 = $arr[1];
+		foreach ($rail0["to"] as $key => $value) {
+			$matches  = preg_grep ('/^'.$value.' (\w+)/i', $rail1["from"]);
+			if($matches){
+				$connections1[] = array(
+					"from" => $rail0["from"][$key],
+					"via1" => "0",
+					"stop" => $matches[0],
+					"via2" => "1",
+					"to" => $rail1["to"][array_search($matches[0],$rail1["from"],true)],
+				);
+			}
+		}
+		foreach ($rail1["to"] as $key => $value) {
+			$matches  = preg_grep ('/^'.$value.' (\w+)/i', $rail0["from"]);
+			if($matches){
+				$connection2[] = array(
+					"from" => $rail1["from"][$key],
+					"via1" => "1",
+					"stop" => $matches[0],
+					"via2" => "0",
+					"to" => $rail0["to"][array_search($matches[0],$rail1["from"],true)],
+				);
+			}
+		}
+		return $connections1+$connection2;
 	}
 }
 ?>

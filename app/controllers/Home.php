@@ -31,6 +31,7 @@ class Home extends CI_Controller{
 
 	function question2(){
 		$this->data['subway'] = $this->routes_m->get_routes_and_stops();
+		$this->data['connections'] = $this->routes_m->route_combination();
 		$this->data['title'] = 'Question 2';
 		$this->data["main_content"] = "question2";
 		$this->load->view($this->template,$this->data);
