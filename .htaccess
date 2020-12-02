@@ -1,0 +1,21 @@
+<IfModule mod_rewrite.c>
+    # Make sure directory listing is disabled
+	Options +FollowSymLinks -Indexes
+	ErrorDocument 400 /index.php
+	ErrorDocument 403 /index.php
+	ErrorDocument 500 /index.php
+	ErrorDocument 503 /index.php
+	
+	RewriteEngine on
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	
+	<IfModule mod_php5.c>
+		RewriteRule ^(.*)$ index.php/$1 [L]
+	</IfModule>
+
+	<IfModule !mod_php5.c>
+		RewriteRule ^(.*)$ index.php?/$1 [L]
+	</IfModule>
+
+</IfModule>
