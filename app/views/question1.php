@@ -1,7 +1,7 @@
 <h4>Download  Vs Rely on Server</h4>
 <h6>"subway" routes:
 "Light Rail" (type 0) and "Heavy Rail" (type 1)</h6>
-<div class="row">
+<div class="row" style="margin-top:25px;">
   <div class="col-md-8">
     <div class="table-responsive">
       <table class="table table-striped table-sm">

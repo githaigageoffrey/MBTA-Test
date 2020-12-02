@@ -92,5 +92,36 @@ class Routes_m extends CI_Model{
 		}
 		return $connections1+$connection2;
 	}
+
+	function search_route($from='',$to=''){
+		if($routes = get_routes()){
+			foreach ($routes as $key => $route) {
+				$attributes = $route->attributes;
+				if($attributes->type == 1){
+					$arr[$attributes->type]["from"][] = str_replace("/", " ",$attributes->direction_destinations[0]);
+					$arr[$attributes->type]["to"][] = str_replace("/", " ",$attributes->direction_destinations[1]);
+				}else if($attributes->type == 0){
+					$arr[$attributes->type]["from"][] = str_replace("/", " ",$attributes->direction_destinations[0]);
+					$arr[$attributes->type]["to"][] = str_replace("/", " ",$attributes->direction_destinations[1]);
+				}
+			}
+		}
+		$rail0 = $arr[0];
+		$rail1 = $arr[1];
+		echo $from.' ';
+		print_r($rail1["from"]);
+		$ans = array_search($from, $rail0["from"]);
+		if($ans){
+			echo $ans;
+		}else{
+			if($ans = array_search($from, $rail1["from"])){
+				echo $ans;
+			}else{
+				echo "miss";
+			}
+		}
+
+		die;
+	}
 }
 ?>
