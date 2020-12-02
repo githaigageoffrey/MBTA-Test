@@ -17,6 +17,9 @@ class Home extends CI_Controller{
 	}
 
 	function index(){
+		$this->data['title'] = 'Home';
+		$this->data["main_content"] = "index";
+		$this->load->view($this->template,$this->data);
 		$this->routes_m->fetch_routes();
 	}
 
