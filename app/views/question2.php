@@ -32,8 +32,8 @@
 
 <div class="clearfix"></div>
 
-<div class="row" style="margin-top:25px;">
-  <div class="col-md-6 col-md-offset-3">
+<div class="row justify-content-md-center"  style="margin-top:25px;">
+  <div class="col-md-8 col-md-offset-3">
     <h6>List of route connecting more than one subway</h6>
     <div class="table-responsive">
       <table class="table table-striped table-sm">
