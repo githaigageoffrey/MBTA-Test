@@ -59,6 +59,7 @@ class Home extends CI_Controller{
 		$this->data['title'] = 'Question 3';
 		$this->data["main_content"] = "question3";
 		$this->data["destinations"] = $this->destinations;
+		$results = array();
 		if($_POST){
 			$from = $this->input->post('from');
 			$to = $this->input->post('to');
@@ -66,13 +67,14 @@ class Home extends CI_Controller{
 				if($from == $to){
 					$error = "Select to different from from";
 				}else{
-					$this->routes_m->search_route($this->destinations[$from],$this->destinations[$to]);
+					$results = $this->routes_m->search_route($from,$to);
 				}
 			}else{
 				$error = "Ensure you select from and to";
 			}
 		}
 		$this->data["error"] = $error;
+		$this->data["results"] = $results;
 		$this->load->view($this->template,$this->data);
 	}
 

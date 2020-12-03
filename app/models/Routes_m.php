@@ -93,35 +93,88 @@ class Routes_m extends CI_Model{
 		return $connections1+$connection2;
 	}
 
-	function search_route($from='',$to=''){
+	function search_route($from='',$destination=''){
+		$st_answer = " No Rail Route";
+		$answer = "";
 		if($routes = get_routes()){
+			$names = array();
 			foreach ($routes as $key => $route) {
 				$attributes = $route->attributes;
-				if($attributes->type == 1){
-					$arr[$attributes->type]["from"][] = str_replace("/", " ",$attributes->direction_destinations[0]);
-					$arr[$attributes->type]["to"][] = str_replace("/", " ",$attributes->direction_destinations[1]);
-				}else if($attributes->type == 0){
-					$arr[$attributes->type]["from"][] = str_replace("/", " ",$attributes->direction_destinations[0]);
-					$arr[$attributes->type]["to"][] = str_replace("/", " ",$attributes->direction_destinations[1]);
+				$arr[] = array(
+					'stops' => $attributes->direction_destinations,
+					'name'=>$attributes->long_name,
+					'type'=>$attributes->type,
+				);
+			}
+		}
+		$froms = array();
+		$tos = array();
+		foreach ($arr as $key => $value) {
+			$froms[] = $value['stops'][0];
+			$tos[] = $value['stops'][1];
+		}
+		// $from = "Mattapan";
+		// $destination = "Alewife";
+		$results = $this->sequential_search($from,$froms,$tos,array(),$destination);
+		if($results){
+			foreach ($results as $result) {
+				$station = $arr[$result];
+				//print_r($station);
+				if($station['type'] == 1 || $station['type']==0){
+					if($answer){
+						$answer.=" --> ".$station['name'];
+					}else{
+						$answer=$station['name'];
+					}
 				}
 			}
 		}
-		$rail0 = $arr[0];
-		$rail1 = $arr[1];
-		echo $from.' ';
-		print_r($rail1["from"]);
-		$ans = array_search($from, $rail0["from"]);
-		if($ans){
-			echo $ans;
-		}else{
-			if($ans = array_search($from, $rail1["from"])){
-				echo $ans;
-			}else{
-				echo "miss";
+		if(!$answer){
+			$answer = $st_answer;
+		}
+		return $answer;
+	}
+
+	function sequential_search($from='',$froms = array(),$tos=array(),$results = array(),$destination='',$places=array(),$unique_key=0){
+		//$searches =  preg_grep ('/^'.$from.' (\w+)/i', $froms);
+		$searches = $this->preg_search_in_array($from,$froms);
+		//print_r($searches);die;
+		//$places = array();
+		$break = FALSE;
+		if($searches){
+			foreach ($searches as $key => $value) {
+				if(!in_array($key, $results)){
+					$res = $tos[$key];
+					$results[] = $key;
+					if(preg_match('/'.$res.'/i', $destination)){
+						$break=true;
+						break;
+					}else{
+						$places[$key] = $res;
+					}
+				}
 			}
 		}
+		if(array_key_exists($unique_key, $places)){
+			unset($places[$unique_key]);
+		}
+		if($places && $break == FALSE){
+			foreach ($places as $place_key => $place_name) {
+				return $this->sequential_search($place_name,$froms,$tos,$results,$destination,$places,$place_key);
+			}
+		}else{
+			return $results;
+		}
+	}
 
-		die;
+	function preg_search_in_array($name="",$data=array()){
+		$res = array();
+		foreach ($data as $key => $value) {
+			if(preg_match('/'.$name.'/i', $value)){
+				$res[$key] = $value;
+			}
+		}
+		return $res;
 	}
 }
 ?>
