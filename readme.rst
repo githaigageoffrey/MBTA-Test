@@ -29,3 +29,21 @@ Model - Modeling the act of reading data from a file.
 Implementation pending
 Looking forward to implement the project to have websockets to update data periodically once the server (https://www.mbta.com/) updates the data.
 Use of state management to update user data once the front end is notified of new updates
+
+###################
+Important Files in the project
+###################
+1. Controllers - Home 
+Hosts all the functions for the questions
+
+2. Config - Custom
+Where api_key, url has been defined. This is always important to manage urls using config for ease during production
+
+3. Model - Routes_m
+Reading and interplating the file
+
+4. Libraries - Curl - 
+To make curl requests to the server
+
+5. Helpers - Custom
+To do any helper tasks like saving the downloaded file. In this case saved the file as .txt but a user can save it in a different format as they so wish.
