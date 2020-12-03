@@ -8,7 +8,7 @@
 				</div>';
 		}?>
 
-		<?php echo form_open('http://mbtatest.local/question3', ' class="form_submit form-inline" role="form"'); ?>
+		<?php echo form_open(current_url(), ' class="form_submit form-inline" role="form"'); ?>
 		  	<div class="form-group mb-2">
 		    	<label for="staticEmail2" class="sr-only">From</label>
 		    	<!-- <?php echo form_dropdown('from',$destinations,$this->input->post('from')?:"",'class="form-control from m-select2" placeholder="Destination From"'); ?> -->

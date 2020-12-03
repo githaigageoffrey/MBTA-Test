@@ -2,7 +2,7 @@
 <h6>"subway" routes:
 "Light Rail" (type 0) and "Heavy Rail" (type 1)</h6>
 <div class="row" style="margin-top:25px;">
-  <div class="col-md-8">
+  <div class="col-md-6">
     <div class="table-responsive">
       <table class="table table-striped table-sm">
         <thead>
@@ -24,5 +24,19 @@
         </tbody>
       </table>
     </div>
+  </div>
+  <div class="col-md-6">
+    
+    <figure class="highlight">
+      <h5> Reasons for Downloading than relying on the server</h5>
+            <ul>
+                <li>Fast access (no waiting time on server requests)</li>
+                <li>Reliable (especially if the API is hosted in a different location experiencing downtimes)</li>
+                <li>Improved frontend performance (especially when paginating & filtering)</li>
+                <li>Can easily work offline with a message to the user that the system is currently offline and one can be able to perform searches</li>
+                <li>The API is not updates/modified so often to warrant online filtering</li>
+                <li>When one downloads the API, gives more freedom to filter and present data in different variety without minding the load time</li>
+              </ul>
+    </figure>
   </div>
 </div>

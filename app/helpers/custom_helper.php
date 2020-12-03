@@ -6,6 +6,9 @@ function save_routes($routes =""){
     		mkdir("./logs/",0777,TRUE);
     	}
         $file = "./logs/route-file.txt";
+        if(!unlink($file)){
+        	return;
+        }
         $modification = array(
         	'modified_on' => time(),
         	'created_on' => time(),

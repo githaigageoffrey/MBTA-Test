@@ -8,7 +8,7 @@ class Curl{
 	}
 
 	function fetch_routes(){
-		$url = $this->ci->config->item('base_url').$this->ci->config->item('route_url');
+		$url = $this->ci->config->item('api_url').$this->ci->config->item('route_url');
 		$modified_on = modification_date()?:0;
 		if($modified_on){
 			$modified_on =date('D, d M Y H:i:s',$modified_on).' GMT';

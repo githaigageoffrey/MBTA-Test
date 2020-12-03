@@ -59,25 +59,25 @@
       <div class="sidebar-sticky pt-3">
         <ul class="nav flex-column">
           <li class="nav-item">
-            <a class="nav-link active" href="#">
+            <a class="nav-link active" href="<?php echo site_url();?>">
               <span data-feather="home"></span>
               Home <span class="sr-only">(current)</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="question1">
+            <a class="nav-link" href="<?php echo site_url('question1');?>">
               <span data-feather="file"></span>
               Question 1
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="question2">
+            <a class="nav-link" href="<?php echo site_url('question2');?>">
               <span data-feather="shopping-cart"></span>
               Question 2
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="question3">
+            <a class="nav-link" href="<?php echo site_url('question3');?>">
               <span data-feather="users"></span>
               Question 3
             </a>
