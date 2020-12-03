@@ -37,6 +37,13 @@
                 <li>The API is not updates/modified so often to warrant online filtering</li>
                 <li>When one downloads the API, gives more freedom to filter and present data in different variety without minding the load time</li>
               </ul>
+          <h5> To achieve accuracy to the data</h5>
+            <ul>
+              <li> Use of websockets to listen to any event or update</li>
+              <li> Constant pinning to get any update after the last modified time</li>
+              <li> Use of state management approach to update the front-end once the file is updated</li>
+              <li> Perfect for Non-transactonal API's ie informational API's</li>
+            </ul>
     </figure>
   </div>
 </div>
