@@ -72,13 +72,24 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 $active_group = 'default';
 $query_builder = TRUE;
+if(preg_match('/(\.local)/',$_SERVER['HTTP_HOST'])){
+	$database = "mbtatest";
+	$username = "root";
+	$password = "";
+	$localhost = "localhost";
+}else{
+	$database = "";
+	$username = "";
+	$password = "";
+	$localhost = "";
+}
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => '',
-	'password' => '',
-	'database' => '',
+	'hostname' => $localhost,
+	'username' => $username,
+	'password' => $password,
+	'database' => $database,
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
