@@ -1,16 +1,20 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed');
-class Routes_m extends CI_Model{
+class Routes_m extends CI_Model
+{
 
-	function __construct(){
+	function __construct()
+	{
 		parent::__construct();
 
 	}
 
-	function fetch_routes(){
+	function fetch_routes()
+	{
 		$this->curl->fetch_routes();
 	}
 
-	function get_all_routes(){
+	function get_all_routes()
+	{
 		$arr = array();
 		if($routes = get_routes()){
 			foreach ($routes as $key => $route) {
@@ -26,7 +30,8 @@ class Routes_m extends CI_Model{
 		return $arr;
 	}
 
-	function get_routes_and_stops(){
+	function get_routes_and_stops()
+	{
 		$arr = array();
 		if($routes = get_routes()){
 			foreach ($routes as $key => $route) {
@@ -48,7 +53,8 @@ class Routes_m extends CI_Model{
 		return ($arr);
 	}
 
-	function route_combination(){
+	function route_combination()
+	{
 		$arr = array();
 		if($routes = get_routes()){
 			foreach ($routes as $key => $route) {
@@ -93,7 +99,8 @@ class Routes_m extends CI_Model{
 		return $connections1+$connection2;
 	}
 
-	function search_route($from='',$destination=''){
+	function search_route($from='',$destination='')
+	{
 		$st_answer = " No Rail Route";
 		$answer = "";
 		if($routes = get_routes()){
@@ -113,13 +120,10 @@ class Routes_m extends CI_Model{
 			$froms[] = $value['stops'][0];
 			$tos[] = $value['stops'][1];
 		}
-		// $from = "Mattapan";
-		// $destination = "Alewife";
 		$results = $this->sequential_search($from,$froms,$tos,array(),$destination);
 		if($results){
 			foreach ($results as $result) {
 				$station = $arr[$result];
-				//print_r($station);
 				if($station['type'] == 1 || $station['type']==0){
 					if($answer){
 						$answer.=" --> ".$station['name'];
@@ -135,11 +139,9 @@ class Routes_m extends CI_Model{
 		return $answer;
 	}
 
-	function sequential_search($from='',$froms = array(),$tos=array(),$results = array(),$destination='',$places=array(),$unique_key=0){
-		//$searches =  preg_grep ('/^'.$from.' (\w+)/i', $froms);
+	function sequential_search($from='',$froms = array(),$tos=array(),$results = array(),$destination='',$places=array(),$unique_key=0)
+	{
 		$searches = $this->preg_search_in_array($from,$froms);
-		//print_r($searches);die;
-		//$places = array();
 		$break = FALSE;
 		if($searches){
 			foreach ($searches as $key => $value) {
@@ -167,7 +169,8 @@ class Routes_m extends CI_Model{
 		}
 	}
 
-	function preg_search_in_array($name="",$data=array()){
+	function preg_search_in_array($name="",$data=array())
+	{
 		$res = array();
 		foreach ($data as $key => $value) {
 			if(preg_match('/'.$name.'/i', $value)){
