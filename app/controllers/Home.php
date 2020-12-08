@@ -36,53 +36,44 @@ class Home extends Authentication_Controller
 
 	function index()
 	{
+		$this->routes_m->fetch_routes();
 		$this->template->title("Home Page")->build('index');
-		// $this->data['title'] = 'Home';
-		// $this->data["main_content"] = "index";
-		// $this->load->view($this->template,$this->data);
-		// $this->routes_m->fetch_routes();
 	}
 
 	function question_one()
 	{
-		// $this->data['routes'] = $this->routes_m->get_all_routes();
-		// $this->data['title'] = 'Question 1';
-		// $this->data["main_content"] = "question1";
-		// $this->load->view($this->template,$this->data);
+		$this->data['routes'] = $this->routes_m->get_all_routes();
+		$this->template->title("Question One")->build("question_one",$this->data);
 	}
 
 	function question_two()
 	{
-		// $this->data['subway'] = $this->routes_m->get_routes_and_stops();
-		// $this->data['connections'] = $this->routes_m->route_combination();
-		// $this->data['title'] = 'Question 2';
-		// $this->data["main_content"] = "question2";
-		// $this->load->view($this->template,$this->data);
+		$this->data['subway'] = $this->routes_m->get_routes_and_stops();
+		$this->data['connections'] = $this->routes_m->route_combination();
+		$this->template->title("Question Two")->build("question_two",$this->data);
 	}
 
 	function question_three()
 	{
-		// $error = "";
-		// $this->data['title'] = 'Question 3';
-		// $this->data["main_content"] = "question3";
-		// $this->data["destinations"] = $this->destinations;
-		// $results = array();
-		// if($_POST){
-		// 	$from = $this->input->post('from');
-		// 	$to = $this->input->post('to');
-		// 	if($from && $to){
-		// 		if($from == $to){
-		// 			$error = "Select to different from from";
-		// 		}else{
-		// 			$results = $this->routes_m->search_route($from,$to);
-		// 		}
-		// 	}else{
-		// 		$error = "Ensure you select from and to";
-		// 	}
-		// }
-		// $this->data["error"] = $error;
-		// $this->data["results"] = $results;
-		// $this->load->view($this->template,$this->data);
+		$error = "";
+		$this->data["destinations"] = $this->destinations;
+		$results = array();
+		if($_POST){
+			$from = $this->input->post('from');
+			$to = $this->input->post('to');
+			if($from && $to){
+				if($from == $to){
+					$error = "Select destination different from source (From where)";
+				}else{
+					$results = $this->routes_m->search_route($from,$to);
+				}
+			}else{
+				$error = "Ensure you all fields are entered correctly";
+			}
+		}
+		$this->data["error"] = $error;
+		$this->data["results"] = $results;
+		$this->template->title("Question Three")->build("question_three",$this->data);
 	}
 
 }
