@@ -34,8 +34,8 @@ class Home extends Authentication_Controller
 		$this->data['subways'] = $this->subways;
 	}
 
-	function index(){
-
+	function index()
+	{
 		$this->template->title("Home Page")->build('index');
 		// $this->data['title'] = 'Home';
 		// $this->data["main_content"] = "index";
@@ -43,14 +43,16 @@ class Home extends Authentication_Controller
 		// $this->routes_m->fetch_routes();
 	}
 
-	function question1(){
+	function question_one()
+	{
 		// $this->data['routes'] = $this->routes_m->get_all_routes();
 		// $this->data['title'] = 'Question 1';
 		// $this->data["main_content"] = "question1";
 		// $this->load->view($this->template,$this->data);
 	}
 
-	function question2(){
+	function question_two()
+	{
 		// $this->data['subway'] = $this->routes_m->get_routes_and_stops();
 		// $this->data['connections'] = $this->routes_m->route_combination();
 		// $this->data['title'] = 'Question 2';
@@ -58,7 +60,8 @@ class Home extends Authentication_Controller
 		// $this->load->view($this->template,$this->data);
 	}
 
-	function question3(){
+	function question_three()
+	{
 		// $error = "";
 		// $this->data['title'] = 'Question 3';
 		// $this->data["main_content"] = "question3";
