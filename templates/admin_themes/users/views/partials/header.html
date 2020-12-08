@@ -45,34 +45,38 @@
     </li>
   </ul>
 </nav>
-
+<?php $current_url = current_url();?>
 <div class="container-fluid">
   <div class="row">
     <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
       <div class="sidebar-sticky pt-3">
         <ul class="nav flex-column">
           <li class="nav-item">
-            <a class="nav-link active" href="<?php echo site_url();?>">
+            <?php $url = site_url();?>
+            <a class="nav-link <?php echo ($current_url==$url)?'active':''?>" href="<?php echo $url;?>">
               <span data-feather="home"></span>
               Home <span class="sr-only">(current)</span>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="<?php echo site_url('question_one');?>">
+            <?php $url = site_url('question_one');?>
+            <a class="nav-link <?php echo ($current_url==$url)?'active':''?>" href="<?php echo $url;?>">
               <span data-feather="file"></span>
               Question One(1)
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="<?php echo site_url('question_two');?>">
+            <?php $url = site_url('question_two');?>
+            <a class="nav-link <?php echo ($current_url==$url)?'active':''?>" href="<?php echo $url;?>">
               <span data-feather="layers"></span>
               Question One(2)
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="<?php echo site_url('question_three');?>">
+            <?php $url = site_url('question_three');?>
+            <a class="nav-link <?php echo ($current_url==$url)?'active':''?>" href="<?php echo $url;?>">
               <span data-feather="users"></span>
-              Question One(3)
+              Question Three(3)
             </a>
           </li>
         </ul>
