@@ -34,4 +34,4 @@ class Authentication extends Authentication_Controller
         redirect('login','refresh');
     }
 
-}?>
+}

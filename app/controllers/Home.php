@@ -76,4 +76,3 @@ class Home extends Authentication_Controller
 	}
 
 }
-?>

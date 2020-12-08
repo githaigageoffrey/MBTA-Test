@@ -180,4 +180,3 @@ class Routes_m extends CI_Model
 		return $res;
 	}
 }
-?>

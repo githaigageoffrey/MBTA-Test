@@ -70,4 +70,4 @@ class Ajax extends Ajax_Controller
         echo json_encode($response);
     }
 
-}?>
+}

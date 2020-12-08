@@ -15,7 +15,7 @@ class Curl
 	* modification date
 	* then saves the file locally for any updates/ usage
 	*/
-	
+
 	function fetch_routes()
 	{
 		$url = $this->ci->config->item('api_url').$this->ci->config->item('route_url');
@@ -65,4 +65,4 @@ class Curl
 
 	}
 
-}?>
+}
