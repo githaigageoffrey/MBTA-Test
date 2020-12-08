@@ -395,8 +395,6 @@ $config['cookie_prefix']	= '';
 
 if(preg_match('/\.com/',$_SERVER['HTTP_HOST'])){
 	$config['cookie_domain']	= ".mbta-test.com";
-}else if(preg_match('/eazzykikundidemo\.com/',$_SERVER['HTTP_HOST'])){
-	$config['cookie_domain']	= ".mbta-test.local";
 }else{
 	$config['cookie_domain']	= "";
 	$config['language_domain']	= "";

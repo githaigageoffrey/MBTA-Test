@@ -84,12 +84,12 @@
               if(response.status == '1'){
                 window.location.href = response.refer;
               }else if(response.status == '200'){
-                Toastr.show("Session Active",response.message,'info');
+                //Toastr.show("Session Active",response.message,'info');
                 window.location.href = response.refer;
               }else{
                 var message = '';
                 if(response.hasOwnProperty('refer')){
-                  Toastr.show("Login Error",response.message,'error');
+                  //Toastr.show("Login Error",response.message,'error');
                   window.location.href = response.refer;
                 }else if(response.hasOwnProperty('validation_errors')){
                   validation_errors = response.validation_errors;
