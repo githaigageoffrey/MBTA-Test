@@ -55,4 +55,9 @@ function modification_date()
 	}
 }
 
+function valid_phone($phone=0,$strlen=TRUE,$set_calling_code_prefix=FALSE)
+{
+	return FALSE;
+}
+
 ?>

@@ -1,235 +1,205 @@
-<?php
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 /**
- * Name:    Ion Auth Model
- * Author:  Ben Edmunds
- *           ben.edmunds@gmail.com
- * @benedmunds
- *
- * Added Awesomeness: Phil Sturgeon
- *
- * Created:  10.01.2009
- *
- * Description:  Modified auth system based on redux_auth with extensive customization. This is basically what Redux Auth 2 should be.
- * Original Author name has been kept but that does not mean that the method has not been modified.
- *
- * Requirements: PHP5.6 or above
- *
- * @package    CodeIgniter-Ion-Auth
- * @author     Ben Edmunds
- * @link       http://github.com/benedmunds/CodeIgniter-Ion-Auth
- * @filesource
- */
-defined('BASEPATH') OR exit('No direct script access allowed');
+* Name:  Ion Auth Model
+*
+* Version: 2.5.2
+*
+* Author:  Ben Edmunds
+* 		   ben.edmunds@gmail.com
+*	  	   @benedmunds
+*
+* Added Awesomeness: Phil Sturgeon
+*
+* Location: http://github.com/benedmunds/CodeIgniter-Ion-Auth
+*
+* Created:  10.01.2009
+*
+* Last Change: 3.22.13
+*
+* Changelog:
+* * 3-22-13 - Additional entropy added - 52aa456eef8b60ad6754b31fbdcc77bb
+*
+* Description:  Modified auth system based on redux_auth with extensive customization.  This is basically what Redux Auth 2 should be.
+* Original Author name has been kept but that does not mean that the method has not been modified.
+*
+* Requirements: PHP5 or above
+*
+*/
 
-/**
- * Class Ion Auth Model
- * @property Ion_auth $ion_auth The Ion_auth library
- */
-class Ion_auth_model extends CI_Model
+class Ion_auth_model extends MY_Model
 {
-	/**
-	 * Max cookie lifetime constant
-	 */
-	const MAX_COOKIE_LIFETIME = 63072000; // 2 years = 60*60*24*365*2 = 63072000 seconds;
-
-	/**
-	 * Max password size constant
-	 */
-	const MAX_PASSWORD_SIZE_BYTES = 4096;
-
 	/**
 	 * Holds an array of tables used
 	 *
 	 * @var array
-	 */
-	public $tables = [];
+	 **/
+	public $tables = array();
 
 	/**
 	 * activation code
-	 * 
-	 * Set by deactivate() function
-	 * Also set on register() function, if email_activation 
-	 * option is activated
-	 * 
-	 * This is the value devs should give to the user 
-	 * (in an email, usually)
-	 * 
-	 * It contains the *user* version of the activation code
-	 * It's a value of the form "selector.validator" 
-	 * 
-	 * This is not the same activation_code as the one in DB.
-	 * The DB contains a *hashed* version of the validator
-	 * and a selector in another column.
-	 * 
-	 * THe selector is not private, and only used to lookup
-	 * the validator.
-	 * 
-	 * The validator is private, and to be only known by the user
-	 * So in case of DB leak, nothing could be actually used.
-	 * 
+	 *
 	 * @var string
-	 */
+	 **/
 	public $activation_code;
+
+	/**
+	 * forgotten password key
+	 *
+	 * @var string
+	 **/
+	public $forgotten_password_code;
 
 	/**
 	 * new password
 	 *
 	 * @var string
-	 */
+	 **/
 	public $new_password;
 
 	/**
 	 * Identity
 	 *
 	 * @var string
-	 */
+	 **/
 	public $identity;
+
+	public $identity_column;
 
 	/**
 	 * Where
 	 *
 	 * @var array
-	 */
-	public $_ion_where = [];
+	 **/
+	public $_ion_where = array();
 
 	/**
 	 * Select
 	 *
 	 * @var array
-	 */
-	public $_ion_select = [];
+	 **/
+	public $_ion_select = array();
 
 	/**
 	 * Like
 	 *
 	 * @var array
-	 */
-	public $_ion_like = [];
+	 **/
+	public $_ion_like = array();
 
 	/**
 	 * Limit
 	 *
 	 * @var string
-	 */
+	 **/
 	public $_ion_limit = NULL;
 
 	/**
 	 * Offset
 	 *
 	 * @var string
-	 */
+	 **/
 	public $_ion_offset = NULL;
 
 	/**
 	 * Order By
 	 *
 	 * @var string
-	 */
+	 **/
 	public $_ion_order_by = NULL;
 
 	/**
 	 * Order
 	 *
 	 * @var string
-	 */
+	 **/
 	public $_ion_order = NULL;
 
 	/**
 	 * Hooks
 	 *
 	 * @var object
-	 */
+	 **/
 	protected $_ion_hooks;
 
 	/**
 	 * Response
 	 *
 	 * @var string
-	 */
+	 **/
 	protected $response = NULL;
 
 	/**
 	 * message (uses lang file)
 	 *
 	 * @var string
-	 */
+	 **/
 	protected $messages;
 
 	/**
 	 * error message (uses lang file)
 	 *
 	 * @var string
-	 */
+	 **/
 	protected $errors;
 
 	/**
 	 * error start delimiter
 	 *
 	 * @var string
-	 */
+	 **/
 	protected $error_start_delimiter;
 
 	/**
 	 * error end delimiter
 	 *
 	 * @var string
-	 */
+	 **/
 	protected $error_end_delimiter;
 
 	/**
 	 * caching of users and their groups
 	 *
 	 * @var array
-	 */
-	public $_cache_user_in_group = [];
+	 **/
+	public $_cache_user_in_group = array();
 
 	/**
 	 * caching of groups
 	 *
 	 * @var array
-	 */
-	protected $_cache_groups = [];
-
-	/**
-	 * Database object
-	 *
-	 * @var object
-	 */
-	protected $db;
+	 **/
+	protected $_cache_groups = array();
 
 	public function __construct()
 	{
-		$this->config->load('ion_auth', TRUE);
-		$this->load->helper('cookie', 'date');
+		parent::__construct();
+		$this->load->database();
+		$this->load->config('ion_auth', TRUE);
+		$this->load->helper('cookie');
+		$this->load->helper('date');
+		$this->load->dbforge();
 		$this->lang->load('ion_auth');
-
-		// initialize the database
-		$group_name = $this->config->item('database_group_name', 'ion_auth');
-		if (empty($group_name)) 
-		{
-			// By default, use CI's db that should be already loaded
-			$CI =& get_instance();
-			$this->db = $CI->db;
-		}
-		else
-		{
-			// For specific group name, open a new specific connection
-			$this->db = $this->load->database($group_name, TRUE, TRUE);
-		}   
-
 		// initialize db tables data
-		$this->tables = $this->config->item('tables', 'ion_auth');
+		$this->tables  = $this->config->item('tables', 'ion_auth');
 
-		// initialize data
+		//initialize data
 		$this->identity_column = $this->config->item('identity', 'ion_auth');
-		$this->join = $this->config->item('join', 'ion_auth');
+		$this->store_salt      = $this->config->item('store_salt', 'ion_auth');
+		$this->salt_length     = $this->config->item('salt_length', 'ion_auth');
+		$this->join			   = $this->config->item('join', 'ion_auth');
+
 
 		// initialize hash method options (Bcrypt)
 		$this->hash_method = $this->config->item('hash_method', 'ion_auth');
+		$this->default_rounds = $this->config->item('default_rounds', 'ion_auth');
+		$this->random_rounds = $this->config->item('random_rounds', 'ion_auth');
+		$this->min_rounds = $this->config->item('min_rounds', 'ion_auth');
+		$this->max_rounds = $this->config->item('max_rounds', 'ion_auth');
+
 
 		// initialize messages and error
-		$this->messages    = [];
-		$this->errors      = [];
+		$this->messages    = array();
+		$this->errors      = array();
 		$delimiters_source = $this->config->item('delimiters_source', 'ion_auth');
 
 		// load the error delimeters either from the config file or use what's been supplied to form validation
@@ -254,268 +224,493 @@ class Ion_auth_model extends CI_Model
 		{
 			// use delimiters from config
 			$this->message_start_delimiter = $this->config->item('message_start_delimiter', 'ion_auth');
-			$this->message_end_delimiter = $this->config->item('message_end_delimiter', 'ion_auth');
-			$this->error_start_delimiter = $this->config->item('error_start_delimiter', 'ion_auth');
-			$this->error_end_delimiter = $this->config->item('error_end_delimiter', 'ion_auth');
+			$this->message_end_delimiter   = $this->config->item('message_end_delimiter', 'ion_auth');
+			$this->error_start_delimiter   = $this->config->item('error_start_delimiter', 'ion_auth');
+			$this->error_end_delimiter     = $this->config->item('error_end_delimiter', 'ion_auth');
 		}
+
 
 		// initialize our hooks object
 		$this->_ion_hooks = new stdClass;
 
+		// load the bcrypt class if needed
+		if ($this->hash_method == 'bcrypt') {
+			if ($this->random_rounds)
+			{
+				$rand = rand($this->min_rounds,$this->max_rounds);
+				$params = array('rounds' => $rand);
+			}
+			else
+			{
+				$params = array('rounds' => $this->default_rounds);
+			}
+
+			$params['salt_prefix'] = $this->config->item('salt_prefix', 'ion_auth');
+			$this->load->library('bcrypt',$params);
+		}
+
 		$this->trigger_events('model_constructor');
+
+		$this->install();
+	}
+
+
+	/**
+	 *	To create tables
+	 *
+	 *
+	 *
+	*/
+	function install()
+	{
+		$this->db->query("
+					CREATE TABLE IF NOT EXISTS `groups` (
+					  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+					  `name` BLOB,
+					  `description` BLOB,
+					  `created_on` BLOB,
+					  `created_by` BLOB,
+					  `modified_by` BLOB,
+					  `modified_on` BLOB,
+					  PRIMARY KEY (`id`)
+					) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+
+		$this->db->query("
+				CREATE TABLE IF NOT EXISTS `users` (
+				  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				  `ip_address` blob,
+				  `username` blob,
+				  `password` blob,
+				  `salt` blob,
+				  `email` blob,
+				  `activation_code` blob,
+				  `forgotten_password_code` blob,
+				  `forgotten_password_time` blob,
+				  `remember_code` blob,
+				  `created_on` blob,
+				  `last_login` blob,
+				  `active` blob,
+				  `first_name` blob,
+				  `middle_name` blob,
+				  `last_name` blob,
+				  `company` blob,
+				  `phone` blob,
+				  `id_number` blob,
+				  `ussd_pin` blob,
+				  `confirmation_code` blob,
+				  `created_by` BLOB,
+				  `modified_by` BLOB,
+				  `modified_on` BLOB,
+				  `expiry_time` blob,
+				  `user_account_activation_code` blob,
+				  `user_account_active` blob,
+				  `remember_selector` blob,
+				  `avatar` blob,
+				  PRIMARY KEY (`id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			");
+
+		$this->db->query("
+				CREATE TABLE IF NOT EXISTS `users_groups` (
+				  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				  `user_id` int(11) unsigned NOT NULL,
+				  `group_id` mediumint(8) unsigned NOT NULL,
+				  `created_on` BLOB,
+				  `created_by` BLOB,
+				  `modified_by` BLOB,
+				  `modified_on` BLOB,
+				  PRIMARY KEY (`id`),
+				  KEY `fk_users_groups_users1_idx` (`user_id`),
+				  KEY `fk_users_groups_groups1_idx` (`group_id`),
+				  CONSTRAINT `uc_users_groups` UNIQUE (`user_id`, `group_id`),
+				  CONSTRAINT `fk_users_groups_users1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+				  CONSTRAINT `fk_users_groups_groups1` FOREIGN KEY (`group_id`) REFERENCES `groups` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+			");
+
+		$this->db->query("
+				CREATE TABLE IF NOT EXISTS `login_attempts` (
+				  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+				  `ip_address` varchar(15) NOT NULL,
+				  `login` varchar(100) NOT NULL,
+				  `time` int(11) unsigned DEFAULT NULL,
+				  PRIMARY KEY (`id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+			");
+
+		//function insert admin
+
+		if(!$this->db->count_all('groups'))
+		{
+			$this->insert_secure_data('groups',array(
+					'name'	=>	'admin',
+					'description'	=>	'Administrator'
+				));
+		}
+
+		if(!$this->db->count_all('users'))
+		{
+			$additional_data = array(
+					'ip_address'		=>		'127.0.0.1', 
+					'username'			=>		'Geoffrey',
+					'activation_code'	=>		'', 
+					'forgotten_password_code'	=>	'', 
+					'created_on'		=>		time(), 
+					'last_login'		=>		'', 
+					'active'			=>		1, 
+					'ussd_pin'			=>		rand(1000,9999),
+					'first_name'		=>		'Geoffrey', 
+					'last_name'			=>		'Githaiga', 
+					'company'			=>		'ADMIN', 
+					);
+
+			$this->register('254763747066', '31784253','githaiga.geoffrey@gmail.com', $additional_data,array(1));
+		}
+
+	
 	}
 
 	/**
-	 * Getter to the DB connection used by Ion Auth
-	 * May prove useful for debugging
+	 * Misc functions
 	 *
-	 * @return object
+	 * Hash password : Hashes the password to be stored in the database.
+	 * Hash password db : This function takes a password and validates it
+	 * against an entry in the users table.
+	 * Salt : Generates a random salt value.
+	 *
+	 * @author Mathew
 	 */
-	public function db()
-	{
-		return $this->db;
-	}
 
 	/**
 	 * Hashes the password to be stored in the database.
 	 *
-	 * @param string $password
-	 * @param string $identity
-	 *
-	 * @return false|string
+	 * @return void
 	 * @author Mathew
-	 */
-	public function hash_password($password, $identity = NULL)
+	 **/
+
+
+
+	public function hash_password($password, $salt=false, $use_sha1_override=FALSE,$new_password_hash = 0)
 	{
-		// Check for empty password, or password containing null char, or password above limit
-		// Null char may pose issue: http://php.net/manual/en/function.password-hash.php#118603
-		// Long password may pose DOS issue (note: strlen gives size in bytes and not in multibyte symbol)
-		if (empty($password) || strpos($password, "\0") !== FALSE ||
-			strlen($password) > self::MAX_PASSWORD_SIZE_BYTES)
+		if (empty($password))
 		{
 			return FALSE;
 		}
 
-		$algo = $this->_get_hash_algo();
-		$params = $this->_get_hash_parameters($identity);
-
-		if ($algo !== FALSE && $params !== FALSE)
-		{
-			return password_hash($password, $algo, $params);
+		if($new_password_hash){
+			return sha1($password . $salt);
 		}
 
-		return FALSE;
+		// bcrypt
+		if ($use_sha1_override === FALSE && $this->hash_method == 'bcrypt')
+		{
+			return $this->bcrypt->hash($password);
+		}
+
+
+		if ($this->store_salt && $salt)
+		{
+			return  sha1($password . $salt);
+		}
+		else
+		{
+			$salt = $this->salt();
+			return  $salt . substr(sha1($salt . $password), 0, -$this->salt_length);
+		}
 	}
 
 	/**
 	 * This function takes a password and validates it
 	 * against an entry in the users table.
 	 *
-	 * @param string	$password
-	 * @param string	$hash_password_db
-	 * @param string	$identity			optional @deprecated only for BC SHA1
+	 * @return void
+	 * @author Mathew
+	 **/
+
+	public function hash_password_db($id, $password, $use_sha1_override = FALSE)
+    {
+        if (empty($id) || empty($password))
+        {
+            return FALSE;
+        }
+
+        $this->trigger_events('extra_where');
+
+        $this->select_secure('password');
+        $this->select_secure('salt');
+        $this->db->where('id', $id);
+        $this->db->limit(1);
+        $query = $this->db->get($this->tables['users']);
+
+        $hash_password_db = $query->row();;
+
+        if ($query->num_rows() !== 1)
+        {
+            return FALSE;
+        }
+
+        // bcrypt
+        if ($use_sha1_override === FALSE && $this->hash_method == 'bcrypt')
+        {
+            if ($this->bcrypt->verify($password, $hash_password_db->password))
+            {
+                return TRUE;
+            }
+
+            return FALSE;
+        }
+
+        // sha1
+        if ($this->store_salt)
+        {
+            $db_password = sha1($password . $hash_password_db->salt);
+
+        }
+        else
+        {
+            $salt = substr($hash_password_db->password, 0, $this->salt_length);
+            echo $db_password = $salt . substr(sha1($salt . $password), 0, -$this->salt_length);
+
+            
+        }
+
+        if ($db_password == $hash_password_db->password)
+        {
+            return TRUE;
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+
+
+	/**
+	 * Generates a random salt value for forgotten passwords or any other keys. Uses SHA1.
 	 *
-	 * @return bool
+	 * @return void
+	 * @author Mathew
+	 **/
+	public function hash_code($password)
+	{
+		return $this->hash_password($password, FALSE, TRUE);
+	}
+
+	/**
+	 * Generates a random salt value.
+	 *
+	 * Salt generation code taken from https://github.com/ircmaxell/password_compat/blob/master/lib/password.php
+	 *
+	 * @return void
+	 * @author Anthony Ferrera
+	 **/
+	public function salt()
+	{
+
+		$raw_salt_len = 16;
+
+ 		$buffer = '';
+        $buffer_valid = false;
+
+        if (function_exists('random_bytes')) {
+		  $buffer = random_bytes($raw_salt_len);
+		  if ($buffer) {
+		    $buffer_valid = true;
+		  }
+		}
+
+		if (!$buffer_valid && function_exists('mcrypt_create_iv') && !defined('PHALANGER')) {
+		     $buffer = mcrypt_create_iv($raw_salt_len, MCRYPT_DEV_URANDOM);
+		    if ($buffer) {
+		        $buffer_valid = true;
+		    }
+		}
+
+        if (!$buffer_valid && function_exists('openssl_random_pseudo_bytes')) {
+            $buffer = openssl_random_pseudo_bytes($raw_salt_len);
+            if ($buffer) {
+                $buffer_valid = true;
+            }
+        }
+
+        if (!$buffer_valid && @is_readable('/dev/urandom')) {
+            $f = fopen('/dev/urandom', 'r');
+            $read = strlen($buffer);
+            while ($read < $raw_salt_len) {
+                $buffer .= fread($f, $raw_salt_len - $read);
+                $read = strlen($buffer);
+            }
+            fclose($f);
+            if ($read >= $raw_salt_len) {
+                $buffer_valid = true;
+            }
+        }
+
+        if (!$buffer_valid || strlen($buffer) < $raw_salt_len) {
+            $bl = strlen($buffer);
+            for ($i = 0; $i < $raw_salt_len; $i++) {
+                if ($i < $bl) {
+                    $buffer[$i] = $buffer[$i] ^ chr(mt_rand(0, 255));
+                } else {
+                    $buffer .= chr(mt_rand(0, 255));
+                }
+            }
+        }
+
+        $salt = $buffer;
+
+        // encode string with the Base64 variant used by crypt
+        $base64_digits   = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+        $bcrypt64_digits = './ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $base64_string   = base64_encode($salt);
+        $salt = strtr(rtrim($base64_string, '='), $base64_digits, $bcrypt64_digits);
+
+	    $salt = substr($salt, 0, $this->salt_length);
+
+
+		return $salt;
+
+	}
+
+	/**
+	 * Activation functions
+	 *
+	 * Activate : Validates and removes activation code.
+	 * Deactivae : Updates a users row with an activation code.
+	 *
 	 * @author Mathew
 	 */
-	public function verify_password($password, $hash_password_db, $identity = NULL)
+
+	/**
+	 * activate
+	 *
+	 * @return void
+	 * @author Mathew
+	 **/
+
+	public function activate($id, $code = FALSE)
+    {
+        $this->trigger_events('pre_activate');
+
+        if ($code !== FALSE)
+        {
+            $query = $this->db->select($this->identity_column)
+                    ->where('activation_code', $code)
+                    ->limit(1)
+                    ->get($this->tables['users']);
+
+            $result = $query->row();
+
+            if ($query->num_rows() !== 1)
+            {
+                $this->trigger_events(array('post_activate', 'post_activate_unsuccessful'));
+                $this->set_error('activate_unsuccessful');
+                return FALSE;
+            }
+
+            $identity = $result->{$this->identity_column};
+
+            $data = array(
+                'activation_code' => NULL,
+                'active' => 1
+            );
+
+            $this->trigger_events('extra_where');
+            $this->db->update_secure_data($id,$this->tables['users'], $data);
+        }
+        else
+        {
+            $data = array(
+                'activation_code' => NULL,
+                'active' => 1
+            );
+
+
+            $this->trigger_events('extra_where');
+            $this->update_secure_data($id,$this->tables['users'], $data);
+        }
+
+
+        $return = $this->db->affected_rows() == 1;
+        if ($return)
+        {
+            $this->trigger_events(array('post_activate', 'post_activate_successful'));
+            $this->set_message('activate_successful');
+        }
+        else
+        {
+            $this->trigger_events(array('post_activate', 'post_activate_unsuccessful'));
+            $this->set_error('activate_unsuccessful');
+        }
+
+
+        return $return;
+    }
+
+
+	/**
+	 * Deactivate
+	 *
+	 * @return void
+	 * @author Mathew
+	 **/
+	public function deactivate($id = NULL)
 	{
-		// Check for empty id or password, or password containing null char, or password above limit
-		// Null char may pose issue: http://php.net/manual/en/function.password-hash.php#118603
-		// Long password may pose DOS issue (note: strlen gives size in bytes and not in multibyte symbol)
-		if (empty($password) || empty($hash_password_db) || strpos($password, "\0") !== FALSE
-			|| strlen($password) > self::MAX_PASSWORD_SIZE_BYTES)
+		$this->trigger_events('deactivate');
+
+		if (!isset($id))
 		{
+			$this->set_error('deactivate_unsuccessful');
 			return FALSE;
 		}
 
-		// password_hash always starts with $
-		if (strpos($hash_password_db, '$') === 0)
-		{
-			return password_verify($password, $hash_password_db);
-		}
-		else
-		{
-			// Handle legacy SHA1 @TODO to delete in later revision
-			return $this->_password_verify_sha1_legacy($identity, $password, $hash_password_db);
-		}
-	}
+		$activation_code       = sha1(md5(microtime()));
+		$this->activation_code = $activation_code;
 
-	/**
-	 * Check if password needs to be rehashed
-	 * If true, then rehash and update it in DB
-	 *
-	 * @param string $hash
-	 * @param string $identity
-	 * @param string $password
-	 *
-	 */
-	public function rehash_password_if_needed($hash, $identity, $password)
-	{
-		$algo = $this->_get_hash_algo();
-		$params = $this->_get_hash_parameters($identity);
-
-		if ($algo !== FALSE && $params !== FALSE)
-		{
-			if (password_needs_rehash($hash, $algo, $params))
-			{
-				if ($this->_set_password_db($identity, $password))
-				{
-					$this->trigger_events(['rehash_password', 'rehash_password_successful']);
-				}
-				else
-				{
-					$this->trigger_events(['rehash_password', 'rehash_password_unsuccessful']);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Get a user by its activation code
-	 *
-	 * @param bool       $user_code	the activation code 
-	 * 								It's the *user* one, containing "selector.validator"
-	 * 								the one you got in activation_code member
-	 *
-	 * @return    bool|object
-	 * @author Indigo
-	 */
-	public function get_user_by_activation_code($user_code)
-	{
-		// Retrieve the token object from the code
-		$token = $this->_retrieve_selector_validator_couple($user_code);
-
-		if ($token) 
-		{
-			// Retrieve the user according to this selector
-			$user = $this->where('activation_selector', $token->selector)->users()->row();
-
-			if ($user)
-			{
-				// Check the hash against the validator
-				if ($this->verify_password($token->validator, $user->activation_code))
-				{
-					return $user;
-				}
-			}
-		}
-
-		return FALSE;
-	}
-
-	/**
-	 * Validates and removes activation code.
-	 *
-	 * @param int|string $id		the user identifier
-	 * @param bool       $code		the *user* activation code 
-	 * 								if omitted, simply activate the user without check
-	 *
-	 * @return bool
-	 * @author Mathew
-	 */
-	public function activate($id, $code = FALSE)
-	{
-		$this->trigger_events('pre_activate');
-
-		if ($code !== FALSE) {
-			$user = $this->get_user_by_activation_code($code);
-		}
-
-		// Activate if no code is given
-		// Or if a user was found with this code, and that it matches the id
-		if ($code === FALSE || ($user && $user->id === $id))
-		{
-			$data = [
-			    'activation_selector' => NULL,
-			    'activation_code' => NULL,
-			    'active'          => 1
-			];
-
-			$this->trigger_events('extra_where');
-			$this->db->update($this->tables['users'], $data, ['id' => $id]);
-
-			if ($this->db->affected_rows() === 1)
-			{
-				$this->trigger_events(['post_activate', 'post_activate_successful']);
-				$this->set_message('activate_successful');
-				return TRUE;
-			}
-		}
-
-		$this->trigger_events(['post_activate', 'post_activate_unsuccessful']);
-		$this->set_error('activate_unsuccessful');
-		return FALSE;
-	}
-
-
-	/**
-	 * Updates a users row with an activation code.
-	 *
-	 * @param int|string|null $id
-	 *
-	 * @return bool
-	 * @author Mathew
-	 */
-	public function deactivate($id = NULL)
-	{
-		$token = $this->_generate_selector_validator_couple(20, 40);
-		$this->activation_code = $token->user_code;
-
-		$data = [
-		    'activation_selector' => $token->selector,
-		    'activation_code' => $token->validator_hashed,
+		$data = array(
+		    'activation_code' => $activation_code,
 		    'active'          => 0
-		];
+		);
 
 		$this->trigger_events('extra_where');
-		$this->db->update($this->tables['users'], $data, ['id' => $id]);
+		$this->db->update_secure_data($id,$this->tables['users'], $data);
 
 		$return = $this->db->affected_rows() == 1;
 		if ($return)
-		{
 			$this->set_message('deactivate_successful');
-		}
 		else
-		{
 			$this->set_error('deactivate_unsuccessful');
-		}
 
 		return $return;
 	}
 
-	/**
-	 * Clear the forgotten password code for a user
-	 *
-	 * @param string $identity
-	 *
-	 * @return bool Success
-	 */
-	public function clear_forgotten_password_code($identity) {
+	public function clear_forgotten_password_code($code) {
 
-		if (empty($identity))
+		if (empty($code))
 		{
 			return FALSE;
 		}
 
-		$data = [
-			'forgotten_password_selector' => NULL,
-			'forgotten_password_code' => NULL,
-			'forgotten_password_time' => NULL
-		];
+		$this->db->where('forgotten_password_code', $code);
 
-		$this->db->update($this->tables['users'], $data, [$this->identity_column => $identity]);
+		if ($this->db->count_all_results($this->tables['users']) > 0)
+		{
+			$data = array(
+			    'forgotten_password_code' => NULL,
+			    'forgotten_password_time' => NULL,
+			    'expiry_time'	=> NuLL,
+			    'confirmation_code'	=>	NULL,
+			);
 
-		return TRUE;
+			$this->db->update($this->tables['users'], $data, array('forgotten_password_code' => $code));
+
+			return TRUE;
+		}
+
+		return FALSE;
 	}
 
-	/**
-	 * Clear the remember code for a user
-	 *
-	 * @param string $identity
-	 *
-	 * @return bool Success
-	 */
 	public function clear_remember_code($identity) {
 
 		if (empty($identity))
@@ -534,87 +729,137 @@ class Ion_auth_model extends CI_Model
 	}
 
 	/**
-	 * Reset password
-	 *
-	 * @param    string $identity
-	 * @param    string $new
+	 * reset password
 	 *
 	 * @return bool
 	 * @author Mathew
-	 */
-	public function reset_password($identity, $new) {
-		$this->trigger_events('pre_change_password');
+	 **/
 
-		if (!$this->identity_check($identity)) {
-			$this->trigger_events(['post_change_password', 'post_change_password_unsuccessful']);
-			return FALSE;
-		}
-
-		$return = $this->_set_password_db($identity, $new);
-
-		if ($return)
+	public function reset_password($identity, $new)
+    {
+        $this->trigger_events('pre_change_password');
+		
+		if(valid_phone($identity))
 		{
-			$this->trigger_events(['post_change_password', 'post_change_password_successful']);
-			$this->set_message('password_change_successful');
+			$identity = valid_phone($identity);
 		}
-		else
-		{
-			$this->trigger_events(['post_change_password', 'post_change_password_unsuccessful']);
-			$this->set_error('password_change_unsuccessful');
-		}
+		
+        if (!$this->identity_check($identity))
+        {
+            $this->trigger_events(array('post_change_password', 'post_change_password_unsuccessful'));
+            return FALSE;
+        }
 
-		return $return;
-	}
+        $this->identity_column = valid_email($identity)?'email':'phone';
+
+        $this->trigger_events('extra_where');
+
+        $query = $this->db->select(array('id',$this->dxa('password'),$this->dxa('salt')))
+                ->where($this->dx($this->identity_column)." ='$identity'",NULL,FALSE)
+                ->limit(1)
+                ->get($this->tables['users'])->row();
+		
+		
+		
+        if (!$query->id)
+        {
+            $this->trigger_events(array('post_change_password', 'post_change_password_unsuccessful'));
+            $this->set_error('password_change_unsuccessful');
+            return FALSE;
+        }
+
+		$result = $query;
+
+        $new = $this->hash_password($new, $result->salt);
+
+        //store the new password and reset the remember code so all remembered instances have to re-login
+        //also clear the forgotten password code
+        $data = array(
+            'password' => $new,
+            'remember_code' => NULL,
+            'forgotten_password_code' => NULL,
+            'forgotten_password_time' => NULL,
+        );
+
+        $this->trigger_events('extra_where');
+		
+        $this->update_secure_data($query->id,$this->tables['users'], $data);
+
+        $return = $this->db->affected_rows() == 1;
+        if ($return)
+        {
+        	$this->messaging->send_password_change_notice($identity);
+            $this->trigger_events(array('post_change_password', 'post_change_password_successful'));
+            $this->set_message('password_change_successful');
+        }
+        else
+        {
+            $this->trigger_events(array('post_change_password', 'post_change_password_unsuccessful'));
+            $this->set_error('password_change_unsuccessful');
+        }
+
+        return $return;
+    }
 
 	/**
-	 * Change password
-	 *
-	 * @param    string $identity
-	 * @param    string $old
-	 * @param    string $new
+	 * change password
 	 *
 	 * @return bool
 	 * @author Mathew
-	 */
-	public function change_password($identity, $old, $new)
-	{
+	 **/
+	public function change_password($identity, $old, $new){
+		if(valid_phone($identity))
+        {
+        	$identity = valid_phone($identity);
+        }
+
+        $this->identity_column = valid_phone($identity)?'phone':'email';
 		$this->trigger_events('pre_change_password');
 
 		$this->trigger_events('extra_where');
 
-		$query = $this->db->select('id, password')
-		                  ->where($this->identity_column, $identity)
+		$query = $this->db->select(array(
+							'id', 
+							$this->dxa('password'), 
+							$this->dxa('salt')
+						))
+		                  ->where($this->dx($this->identity_column).' = "'.$identity.'"',NULL,FALSE)
 		                  ->limit(1)
-		                  ->order_by('id', 'desc')
-		                  ->get($this->tables['users']);
+		    			  ->order_by('id', 'desc')
+		                  ->get($this->tables['users']); 
 
-		if ($query->num_rows() !== 1)
-		{
-			$this->trigger_events(['post_change_password', 'post_change_password_unsuccessful']);
+		if ($query->num_rows() !== 1){
+			$this->trigger_events(array('post_change_password', 'post_change_password_unsuccessful'));
 			$this->set_error('password_change_unsuccessful');
 			return FALSE;
 		}
 
 		$user = $query->row();
 
-		if ($this->verify_password($old, $user->password, $identity))
-		{
-			$result = $this->_set_password_db($identity, $new);
+		$old_password_matches = $this->hash_password_db($user->id, $old);
 
-			if ($result)
-			{
-				$this->trigger_events(['post_change_password', 'post_change_password_successful']);
+		if ($old_password_matches === TRUE){
+
+			// store the new password and reset the remember code so all remembered instances have to re-login
+			$hashed_new_password  = $this->hash_password($new, $user->salt);
+			$data = array(
+			    'password' => $hashed_new_password,
+			    'remember_code' => NULL,
+			);
+
+			$this->trigger_events('extra_where');
+
+			$successfully_changed_password_in_db = $this->update_secure_data($user->id,$this->tables['users'], $data);
+			if ($successfully_changed_password_in_db){
+				$this->trigger_events(array('post_change_password', 'post_change_password_successful'));
 				$this->set_message('password_change_successful');
-			}
-			else
-			{
-				$this->trigger_events(['post_change_password', 'post_change_password_unsuccessful']);
+			}else{
+				$this->trigger_events(array('post_change_password', 'post_change_password_unsuccessful'));
 				$this->set_error('password_change_unsuccessful');
 			}
 
-			return $result;
+			return $successfully_changed_password_in_db;
 		}
-
 		$this->set_error('password_change_unsuccessful');
 		return FALSE;
 	}
@@ -622,11 +867,9 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * Checks username
 	 *
-	 * @param string $username
-	 *
 	 * @return bool
 	 * @author Mathew
-	 */
+	 **/
 	public function username_check($username = '')
 	{
 		$this->trigger_events('username_check');
@@ -639,354 +882,89 @@ class Ion_auth_model extends CI_Model
 		$this->trigger_events('extra_where');
 
 		return $this->db->where('username', $username)
-						->limit(1)
-						->count_all_results($this->tables['users']) > 0;
+										->group_by("id")
+										->order_by("id", "ASC")
+										->limit(1)
+		                ->count_all_results($this->tables['users']) > 0;
 	}
 
 	/**
 	 * Checks email
 	 *
-	 * @param string $email
-	 *
 	 * @return bool
 	 * @author Mathew
-	 */
+	 **/
 	public function email_check($email = '')
-	{
-		$this->trigger_events('email_check');
+    {
+        $this->trigger_events('email_check');
 
-		if (empty($email))
-		{
-			return FALSE;
-		}
+        if (empty($email))
+        {
+            return FALSE;
+        }
 
-		$this->trigger_events('extra_where');
+        $this->trigger_events('extra_where');
 
-		return $this->db->where('email', $email)
-						->limit(1)
-						->count_all_results($this->tables['users']) > 0;
-	}
+        return $this->db->where($this->dx('email')." = '$email'",NULL,FALSE)
+                        ->count_all_results($this->tables['users']) > 0;
+    }
+
 
 	/**
 	 * Identity check
 	 *
-	 * @param $identity string
-	 *
 	 * @return bool
 	 * @author Mathew
-	 */
+	 **/
 	public function identity_check($identity = '')
-	{
-		$this->trigger_events('identity_check');
+    {
+        $this->trigger_events('identity_check');
 
-		if (empty($identity))
-		{
-			return FALSE;
+        if (empty($identity))
+        {
+            return FALSE;
+        }
+        if(valid_phone($identity))
+        {
+        	$identity = valid_phone($identity);
+        }
+        $this->select_all_secure('users');
+        if(valid_phone($identity)){
+			$this->db->where('('.$this->dx('users.phone').'="'.$identity.'" OR '.$this->dx('users.phone').' = "'.valid_phone($identity).'"  OR '.$this->dx('users.phone').' = "+'.valid_phone($identity).'" OR '.$this->dx('users.phone').' ="+'.$identity.'" OR '.$this->dx('users.phone').' ="'.str_replace('+','', $identity).'" )',NULL,FALSE);
+			return $this->db->get($this->tables['users'])->row();
+		}else{
+			$this->db->where($this->dx('users.email').'="'.$identity.'"',NULL,FALSE);
+			return $this->db->get($this->tables['users'])->row();
 		}
+    }
 
-		return $this->db->where($this->identity_column, $identity)
-						->limit(1)
-						->count_all_results($this->tables['users']) > 0;
-	}
+    function check_mail_duplicate($email = '')
+    {
+    	if(empty($email))
+    	{
+    		return FALSE;
+    	}
 
-	/**
-	 * Get user ID from identity
-	 *
-	 * @param $identity string
-	 *
-	 * @return bool|int
-	 */
-	public function get_user_id_from_identity($identity = '')
-	{
-		if (empty($identity))
-		{
-			return FALSE;
-		}
+    	return $this->db->where($this->dx('email')." ='".$email."'",NULL,FALSE)
+                        ->count_all_results($this->tables['users']) > 0;
+    }
 
-		$query = $this->db->select('id')
-						  ->where($this->identity_column, $identity)
-						  ->limit(1)
-						  ->get($this->tables['users']);
-
-		if ($query->num_rows() !== 1)
-		{
-			return FALSE;
-		}
-
-		$user = $query->row();
-
-		return $user->id;
-	}
+    function id_number_check($id_number = '')
+    {
+    	$this->select_all_secure('users');
+        $this->db->where($this->dx('id_number')." ='".$id_number."'",NULL,FALSE);
+        return $this->db->get($this->tables['users'])->row();
+    }
 
 	/**
 	 * Insert a forgotten password key.
 	 *
-	 * @param    string $identity
-	 *
-	 * @return    bool|string
-	 * @author  Mathew
-	 * @updated Ryan
-	 */
-	public function forgotten_password($identity)
-	{
-		if (empty($identity))
-		{
-			$this->trigger_events(['post_forgotten_password', 'post_forgotten_password_unsuccessful']);
-			return FALSE;
-		}
-
-		// Generate random token: smaller size because it will be in the URL
-		$token = $this->_generate_selector_validator_couple(20, 80);
-
-		$update = [
-			'forgotten_password_selector' => $token->selector,
-			'forgotten_password_code' => $token->validator_hashed,
-			'forgotten_password_time' => time()
-		];
-
-		$this->trigger_events('extra_where');
-		$this->db->update($this->tables['users'], $update, [$this->identity_column => $identity]);
-
-		if ($this->db->affected_rows() === 1)
-		{
-			$this->trigger_events(['post_forgotten_password', 'post_forgotten_password_successful']);
-			return $token->user_code;
-		}
-		else
-		{
-			$this->trigger_events(['post_forgotten_password', 'post_forgotten_password_unsuccessful']);
-			return FALSE;
-		}
-	}
-
-	/**
-	 * Get a user from a forgotten password key.
-	 *
-	 * @param    string $user_code
-	 *
-	 * @return    bool|object
-	 * @author  Mathew
-	 * @updated Ryan
-	 */
-	public function get_user_by_forgotten_password_code($user_code)
-	{
-		// Retrieve the token object from the code
-		$token = $this->_retrieve_selector_validator_couple($user_code);
-
-		if($token) {
-			// Retrieve the user according to this selector
-			$user = $this->where('forgotten_password_selector', $token->selector)->users()->row();
-
-			if ($user)
-			{
-				// Check the hash against the validator
-				if ($this->verify_password($token->validator, $user->forgotten_password_code))
-				{
-					return $user;
-				}
-			}
-		}
-
-		return FALSE;
-	}
-
-	/**
-	 * Register
-	 *
-	 * @param    string $identity
-	 * @param    string $password
-	 * @param    string $email
-	 * @param    array  $additional_data
-	 * @param    array  $groups
-	 *
-	 * @return    bool
-	 * @author    Mathew
-	 */
-	public function register($identity, $password, $email, $additional_data = [], $groups = [])
-	{
-		$this->trigger_events('pre_register');
-
-		$manual_activation = $this->config->item('manual_activation', 'ion_auth');
-
-		if ($this->identity_check($identity))
-		{
-			$this->set_error('account_creation_duplicate_identity');
-			return FALSE;
-		}
-		else if (!$this->config->item('default_group', 'ion_auth') && empty($groups))
-		{
-			$this->set_error('account_creation_missing_default_group');
-			return FALSE;
-		}
-
-		// check if the default set in config exists in database
-		$query = $this->db->get_where($this->tables['groups'], ['name' => $this->config->item('default_group', 'ion_auth')], 1)->row();
-		if (!isset($query->id) && empty($groups))
-		{
-			$this->set_error('account_creation_invalid_default_group');
-			return FALSE;
-		}
-
-		// capture default group details
-		$default_group = $query;
-
-		// IP Address
-		$ip_address = $this->input->ip_address();
-
-		// Do not pass $identity as user is not known yet so there is no need
-		$password = $this->hash_password($password);
-
-		if ($password === FALSE)
-		{
-			$this->set_error('account_creation_unsuccessful');
-			return FALSE;
-		}
-
-		// Users table.
-		$data = [
-			$this->identity_column => $identity,
-			'password' => $password,
-			'email' => $email,
-			'ip_address' => $ip_address,
-			'created_on' => time(),
-			'active' => ($manual_activation === FALSE ? 1 : 0)
-		];
-
-		// filter out any data passed that doesnt have a matching column in the users table
-		// and merge the set user data and the additional data
-		$user_data = array_merge($this->_filter_data($this->tables['users'], $additional_data), $data);
-
-		$this->trigger_events('extra_set');
-
-		$this->db->insert($this->tables['users'], $user_data);
-
-		$id = $this->db->insert_id($this->tables['users'] . '_id_seq');
-
-		if(!$id) {
-			return FALSE;
-		}
-
-		// add in groups array if it doesn't exists and stop adding into default group if default group ids are set
-		if (isset($default_group->id) && empty($groups))
-		{
-			$groups[] = $default_group->id;
-		}
-
-		if (!empty($groups))
-		{
-			// add to groups
-			foreach ($groups as $group)
-			{
-				$this->add_to_group($group, $id);
-			}
-		}
-
-		$this->trigger_events('post_register');
-
-		return (isset($id)) ? $id : FALSE;
-	}
-
-	/**
-	 * login
-	 *
-	 * @param    string $identity
-	 * @param    string $password
-	 * @param    bool   $remember
-	 *
-	 * @return    bool
-	 * @author    Mathew
-	 */
-	public function login($identity, $password, $remember=FALSE)
-	{
-		$this->trigger_events('pre_login');
-
-		if (empty($identity) || empty($password))
-		{
-			$this->set_error('login_unsuccessful');
-			return FALSE;
-		}
-
-		$this->trigger_events('extra_where');
-
-		$query = $this->db->select($this->identity_column . ', email, id, password, active, last_login')
-						  ->where($this->identity_column, $identity)
-						  ->limit(1)
-						  ->order_by('id', 'desc')
-						  ->get($this->tables['users']);
-
-		if ($this->is_max_login_attempts_exceeded($identity))
-		{
-			// Hash something anyway, just to take up time
-			$this->hash_password($password);
-
-			$this->trigger_events('post_login_unsuccessful');
-			$this->set_error('login_timeout');
-
-			return FALSE;
-		}
-
-		if ($query->num_rows() === 1)
-		{
-			$user = $query->row();
-
-			if ($this->verify_password($password, $user->password, $identity))
-			{
-				if ($user->active == 0)
-				{
-					$this->trigger_events('post_login_unsuccessful');
-					$this->set_error('login_unsuccessful_not_active');
-
-					return FALSE;
-				}
-
-				$this->set_session($user);
-
-				$this->update_last_login($user->id);
-
-				$this->clear_login_attempts($identity);
-				$this->clear_forgotten_password_code($identity);
-
-				if ($this->config->item('remember_users', 'ion_auth'))
-				{
-					if ($remember)
-					{
-						$this->remember_user($identity);
-					}
-					else
-					{
-						$this->clear_remember_code($identity);
-					}
-				}
-				
-				// Rehash if needed
-				$this->rehash_password_if_needed($user->password, $identity, $password);
-
-				// Regenerate the session (for security purpose: to avoid session fixation)
-				$this->session->sess_regenerate(FALSE);
-
-				$this->trigger_events(['post_login', 'post_login_successful']);
-				$this->set_message('login_successful');
-
-				return TRUE;
-			}
-		}
-
-		// Hash something anyway, just to take up time
-		$this->hash_password($password);
-
-		$this->increase_login_attempts($identity);
-
-		$this->trigger_events('post_login_unsuccessful');
-		$this->set_error('login_unsuccessful');
-
-		return FALSE;
-	}
-
-	/**
-	 * Verifies if the session should be rechecked according to the configuration item recheck_timer. If it does, then
-	 * it will check if the user is still active
 	 * @return bool
-	 */
+	 * @author Mathew
+	 * @updated Ryan
+	 * @updated 52aa456eef8b60ad6754b31fbdcc77bb
+	 **/
+
 	public function recheck_session()
 	{
 		if (empty($this->session->userdata('identity')))
@@ -1031,26 +1009,541 @@ class Ion_auth_model extends CI_Model
 		return (bool)$session_hash && $session_hash === $this->config->item('session_hash', 'ion_auth');
 	}
 
+	public function forgotten_password($identity,$remember_code = '')
+    {
+        if (empty($identity))
+        {
+            $this->trigger_events(array('post_forgotten_password', 'post_forgotten_password_unsuccessful'));
+            return FALSE;
+        }
+
+        if(valid_phone($identity))
+        {
+        	//$identity = valid_phone($identity);
+        }
+
+
+        $key = $this->hash_code(microtime() . $identity);
+
+        $this->forgotten_password_code = $key;
+
+        $this->trigger_events('extra_where');
+
+        $code = rand(10000,99999);
+        $expiry_time = $time=strtotime('+30 minutes',time());
+        if($remember_code){
+
+        }else{
+        	$remember_code = rand(1111,9999);
+        }
+        
+        $update = array(
+            'forgotten_password_code' => $key,
+            'forgotten_password_time' => time(),
+            'confirmation_code' => $code,
+            'expiry_time'	=> $expiry_time,
+            'remember_code' => $remember_code,
+        );
+        $this->identity_column = valid_email($identity)?'email':'phone';
+		$user = $this->get_user_by_identity($identity);
+		if(!$user) return FALSE;
+        $this->db->update($this->tables['users'],  
+         $update = array(
+            'forgotten_password_code' => $key,
+            'forgotten_password_time' =>time(),
+            'confirmation_code' => $code,
+            'expiry_time'	=> $expiry_time
+        ));
+		$this->update_secure_data($user->id,$this->tables['users'],$update);
+        $return = $this->db->affected_rows() == 1;
+        if ($return)
+            $this->trigger_events(array('post_forgotten_password', 'post_forgotten_password_successful'));
+        else
+            $this->trigger_events(array('post_forgotten_password', 'post_forgotten_password_unsuccessful'));
+        return $return;
+    }
+
+
+	/**
+	 * Forgotten Password Complete
+	 *
+	 * @return string
+	 * @author Mathew
+	 **/
+
+
+	function confirm_code_alone($code=0){
+		if(!$code)
+		{
+			return FALSE;
+		}		
+
+		$this->select_all_secure($this->tables['users']);
+		$this->db->where($this->dx('confirmation_code') . " = '" . $this->db->escape_str($code) . "'", NULL, FALSE);
+        $this->db->limit(1);
+        $query = $this->db->get($this->tables['users']);
+        return $query->row();
+	}
+
+
+	public function confirm_code($identity,$code)
+	{
+		if(!$identity && !$code)
+		{
+			return FALSE;
+		}
+		$this->identity_column = valid_phone($identity)?'phone':'email';
+
+		$this->select_all_secure($this->tables['users']);
+		if($this->identity_column=='phone'){
+        	$this->db->where(" ( 
+        		".$this->dx($this->identity_column) . " = '" . $this->db->escape_str(valid_phone($identity)) . "' OR 
+        		".$this->dx($this->identity_column) . " = '" . $this->db->escape_str($identity) . "'  OR 
+        		".$this->dx($this->identity_column) . " = '+" . $this->db->escape_str(valid_phone($identity)) . "' )", NULL, FALSE);
+        }else{
+        	$this->db->where($this->dx($this->identity_column) . " = '" . $this->db->escape_str($identity) . "'", NULL, FALSE);
+        }
+		$this->db->where($this->dx('confirmation_code') . " = '" . $this->db->escape_str($code) . "'", NULL, FALSE);
+        $this->db->limit(1);
+        $query = $this->db->get($this->tables['users']);
+
+        if ($query->num_rows() === 1)
+        {
+        	return $query->row();
+        }
+        else
+        {
+        	$this->set_error('confirmation_code_error');
+        	return FALSE;
+        }
+	}
+
+
+	public function forgotten_password_complete($code, $salt = FALSE)
+    {
+        $this->trigger_events('pre_forgotten_password_complete');
+
+        if (empty($code))
+        {
+            $this->trigger_events(array('post_forgotten_password_complete', 'post_forgotten_password_complete_unsuccessful'));
+            return FALSE;
+        }
+
+        $profile = $this->db->where($this->dx('forgotten_password_code')." ='$code'",NULL,FALSE)->get('users')->row(); //pass the code to profile
+
+        if ($profile)
+        {
+
+            if ($this->config->item('forgot_password_expiration', 'ion_auth') > 0)
+            {
+                //Make sure it isn't expired
+                $expiration = $this->config->item('forgot_password_expiration', 'ion_auth');
+                if (time() - $profile->forgotten_password_time > $expiration)
+                {
+                    //it has expired
+                    $this->set_error('forgot_password_expired');
+                    $this->trigger_events(array('post_forgotten_password_complete', 'post_forgotten_password_complete_unsuccessful'));
+                    return FALSE;
+                }
+            }
+
+            $password = $this->salt();
+
+            $data = array(
+                'password' => $this->hash_password($password, $salt),
+                'forgotten_password_code' => NULL,
+                'active' => 1,
+            );
+
+            $this->update_secure_data($profile->id,$this->tables['users'], $data);
+
+            $this->trigger_events(array('post_forgotten_password_complete', 'post_forgotten_password_complete_successful'));
+            return $password;
+        }
+
+        $this->trigger_events(array('post_forgotten_password_complete', 'post_forgotten_password_complete_unsuccessful'));
+        return FALSE;
+    }
+
+	/**
+	 * register
+	 *
+	 * @return bool
+	 * @author Mathew
+	 **/
+	public function register($identity, $password, $email, $additional_data = array(), $groups = array(),$ignore_phone_validation=FALSE)
+	{
+		if(valid_phone($identity) && $ignore_phone_validation == FALSE)
+		{
+			$identity = valid_phone($identity);
+		}
+		if(valid_email($identity) && empty($email))
+		{
+			$email = $identity;
+		}
+
+		$this->trigger_events('pre_register');
+
+		$manual_activation = $this->config->item('manual_activation', 'ion_auth');
+
+		if ($this->identity_check($identity))
+		{
+			$this->set_error('account_creation_duplicate_identity');
+			return FALSE;
+		}
+		elseif ( !$this->config->item('default_group', 'ion_auth') && empty($groups) )
+		{
+			$this->set_error('account_creation_missing_default_group');
+			return FALSE;
+		}
+
+		if($email)
+		{
+			if($this->check_mail_duplicate($email))
+			{
+				$this->set_error('account_creation_duplicate_identity');
+				return False;
+				
+			}
+		}
+
+
+		$this->identity_column = valid_phone($identity)?'phone':'email';
+
+		// check if the default set in config exists in database
+		$query = $this->db->get_where($this->tables['groups'],array('name' => $this->config->item('default_group', 'ion_auth')),1)->row();
+		if( !isset($query->id) && empty($groups) )
+		{
+			$this->set_error('account_creation_invalid_default_group');
+			return FALSE;
+		}
+
+		// capture default group details
+		$default_group = $query;
+
+		// IP Address
+		$ip_address = $this->_prepare_ip($this->input->ip_address());
+		$salt       = $this->store_salt ? $this->salt() : FALSE;
+		$password   = $this->hash_password($password, $salt);
+
+		// Users table.
+		$data = array(
+		    $this->identity_column   => $identity,
+		    'password'   => $password,
+		    'email'      => $email,
+		    'ip_address' => $ip_address,
+		    'created_on' => time(),
+		    'active'     => ($manual_activation === false ? 1 : 0)
+		);
+
+		if ($this->store_salt)
+		{
+			$data['salt'] = $salt;
+		}
+
+		// filter out any data passed that doesnt have a matching column in the users table
+		// and merge the set user data and the additional data
+		$user_data = array_merge($this->_filter_data($this->tables['users'], $additional_data), $data);
+
+		$this->trigger_events('extra_set');
+
+		$id = $this->insert_secure_data($this->tables['users'], $user_data);
+
+		// add in groups array if it doesn't exits and stop adding into default group if default group ids are set
+		if( isset($default_group->id) && empty($groups) )
+		{
+			$groups[] = $default_group->id;
+		}
+
+		if (!empty($groups))
+		{
+			// add to groups
+			foreach ($groups as $group)
+			{
+				$this->add_to_group($group, $id);
+			}
+		}
+
+		$this->trigger_events('post_register');
+
+		return (isset($id)) ? $id : FALSE;
+	}
+
+	/**
+	 * login
+	 *
+	 * @return bool
+	 * @author Mathew
+	 **/
+	public function login($identity, $password, $remember = FALSE){
+    	if(valid_phone($identity))
+    	{
+    		//$identity = valid_phone($identity);
+    	}
+        $this->trigger_events('pre_login');
+
+        if (empty($identity) || empty($password))
+        {
+            $this->set_error('login_unsuccessful');
+            return FALSE;
+        }
+        $this->identity_column = valid_email($identity)?'email':'phone';
+        $this->trigger_events('extra_where');
+        $this->select_all_secure($this->tables['users']);
+        if($this->identity_column=='phone'){
+        	$this->db->where(" ( 
+        		".$this->dx($this->identity_column) . " = '" . $this->db->escape_str(valid_phone($identity)) . "' OR 
+        		".$this->dx($this->identity_column) . " = '" . $this->db->escape_str($identity) . "'  OR 
+        		".$this->dx($this->identity_column) . " = '+" . $this->db->escape_str(valid_phone($identity)) . "' )", NULL, FALSE);
+        }else{
+        	$this->db->where($this->dx($this->identity_column) . " = '" . $this->db->escape_str($identity) . "'", NULL, FALSE);
+        }
+        $this->db->limit(1);
+        $query = $this->db->get($this->tables['users']);
+
+        if($query->row() && $query->row()->active !=1)
+        {
+        	 $this->set_error('inactive_account');
+              return FALSE;
+        }
+
+        if ($query->num_rows() === 1)
+        {
+            $user = $query->row();
+            $password = $this->hash_password_db($user->id, $password);
+            if ($password === TRUE)
+            {
+            	
+                if ($user->active == 0)
+                {
+                    $this->trigger_events('post_login_unsuccessful');
+                    $this->set_error('login_unsuccessful_not_active');
+
+                    return FALSE;
+                }
+
+                $session_data = array(
+                    'identity' => $user->{$this->identity_column},
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'user_id' => $user->id, //everyone likes to overwrite id so we'll use user_id
+                    'old_last_login' => $user->last_login
+                );
+
+
+                $this->update_last_login($user->id);
+
+
+                $this->clear_login_attempts($identity);
+
+                $this->session->set_userdata($session_data);
+
+
+                if ($remember && $this->config->item('remember_users', 'ion_auth'))
+                {
+                    $this->remember_user($user->id);
+                }
+
+                $this->trigger_events(array('post_login', 'post_login_successful'));
+                $this->set_message('login_successful');
+
+                return TRUE;
+            }
+            
+        }
+
+        //Hash something anyway, just to take up time
+        $this->hash_password($password);
+
+        $this->increase_login_attempts($identity);
+
+        $this->trigger_events('post_login_unsuccessful');
+        $this->set_error('login_unsuccessful');
+
+        return FALSE;
+    }
+
+
+     /**
+     * login
+     *
+     * @return bool
+     * @author Mathew
+     * */
+    public function droid_login($identity, $password, $remember = FALSE)
+    {
+        if(valid_phone($identity))
+    	{
+    		//$identity = valid_phone($identity);
+    	}
+        $this->trigger_events('pre_login');
+
+        if (empty($identity) || empty($password))
+        {
+            $this->set_error('login_unsuccessful');
+            return FALSE;
+        }
+        $this->identity_column = valid_email($identity)?'email':'phone';
+        $this->trigger_events('extra_where');
+        $this->select_all_secure($this->tables['users']);
+        if($this->identity_column=='phone'){
+        	$this->db->where(" ( 
+        		".$this->dx($this->identity_column) . " = '" . $this->db->escape_str(valid_phone($identity)) . "' OR 
+        		".$this->dx($this->identity_column) . " = '" . $this->db->escape_str($identity) . "'  OR 
+        		".$this->dx($this->identity_column) . " = '+" . $this->db->escape_str(valid_phone($identity)) . "' )", NULL, FALSE);
+        }else{
+        	$this->db->where($this->dx($this->identity_column) . " = '" . $this->db->escape_str($identity) . "'", NULL, FALSE);
+        }
+        $this->db->limit(1);
+        $query = $this->db->get($this->tables['users']);
+
+        if($query->row() && $query->row()->active !=1)
+        {
+        	 //$this->set_error('inactive_account');
+              return FALSE;
+        }
+
+
+        if ($query->num_rows() === 1)
+        {
+            $user = $query->row();
+            $password = $this->hash_password_db($user->id, $password);
+            if ($password === TRUE)
+            {
+            	
+                if ($user->active == 0)
+                {
+                    $this->trigger_events('post_login_unsuccessful');
+                    //$this->set_error('login_unsuccessful_not_active');
+
+                    return FALSE;
+                }
+
+                $session_data = array(
+                    'identity' => $user->{$this->identity_column},
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'user_id' => $user->id, //everyone likes to overwrite id so we'll use user_id
+                    'old_last_login' => $user->last_login
+                );
+
+
+                $this->update_last_login($user->id);
+
+
+                $this->clear_login_attempts($identity);
+
+                $this->session->set_userdata($session_data);
+
+
+                if ($remember && $this->config->item('remember_users', 'ion_auth'))
+                {
+                    $this->remember_user($user->id);
+                }
+
+                $this->trigger_events(array('post_login', 'post_login_successful'));
+                //$this->set_message('login_successful');
+
+                return $user;
+            }
+            
+        }
+
+        //Hash something anyway, just to take up time
+       // $this->hash_password($password);
+
+        $this->increase_login_attempts($identity);
+
+        $this->trigger_events('post_login_unsuccessful');
+        //$this->set_error('login_unsuccessful');
+
+        return FALSE;
+    }
+
+
+    /**
+	 * login
+	 *
+	 * @return bool
+	 * @author Mathew
+	 **/
+	public function machine_login($user_id){
+
+		if(!defined('ARA')){
+			die;
+		}
+    	
+		$this->select_all_secure($this->tables['users']);
+		$this->db->where('id',$user_id);
+		$this->db->limit(1);
+        $query = $this->db->get($this->tables['users']);
+
+        if($query->row() && $query->row()->active !=1)
+        {
+        	 //$this->set_error('inactive_account');
+              return FALSE;
+        }
+
+
+
+        if ($query->num_rows() === 1)
+        {
+           	$user = $query->row();
+                if ($user->active == 0)
+                {
+                    $this->trigger_events('post_login_unsuccessful');
+                    $this->set_error('login_unsuccessful_not_active');
+
+                    return FALSE;
+                }
+
+                $session_data = array(
+                    'identity' => $user->{$this->identity_column},
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'user_id' => $user->id, //everyone likes to overwrite id so we'll use user_id
+                    'old_last_login' => $user->last_login
+                );
+
+
+                $this->update_last_login($user->id);
+
+
+                $this->clear_login_attempts($user->{$this->identity_column});
+
+                $this->session->set_userdata($session_data);
+
+
+                $this->trigger_events(array('post_login', 'post_login_successful'));
+                $this->set_message('login_successful');
+
+                return TRUE;
+
+        }
+
+        //Hash something anyway, just to take up time
+        //$this->hash_password($password);
+
+        $this->increase_login_attempts($identity);
+
+        $this->trigger_events('post_login_unsuccessful');
+        $this->set_error('login_unsuccessful');
+
+        return FALSE;
+    }
+
 	/**
 	 * is_max_login_attempts_exceeded
 	 * Based on code from Tank Auth, by Ilya Konyukhov (https://github.com/ilkon/Tank-Auth)
 	 *
-	 * @param string      $identity   user's identity
-	 * @param string|null $ip_address IP address
-	 *                                Only used if track_login_ip_address is set to TRUE.
-	 *                                If NULL (default value), the current IP address is used.
-	 *                                Use get_last_attempt_ip($identity) to retrieve a user's last IP
-	 *
+	 * @param string $identity
 	 * @return boolean
-	 */
-	public function is_max_login_attempts_exceeded($identity, $ip_address = NULL)
-	{
-		if ($this->config->item('track_login_attempts', 'ion_auth'))
-		{
+	 **/
+	public function is_max_login_attempts_exceeded($identity) {
+		if ($this->config->item('track_login_attempts', 'ion_auth')) {
 			$max_attempts = $this->config->item('maximum_login_attempts', 'ion_auth');
-			if ($max_attempts > 0)
-			{
-				$attempts = $this->get_attempts_num($identity, $ip_address);
+			if ($max_attempts > 0) {
+				$attempts = $this->get_attempts_num($identity);
 				return $attempts >= $max_attempts;
 			}
 		}
@@ -1058,68 +1551,54 @@ class Ion_auth_model extends CI_Model
 	}
 
 	/**
-	 * Get number of login attempts for the given IP-address or identity
+	 * Get number of attempts to login occured from given IP-address or identity
 	 * Based on code from Tank Auth, by Ilya Konyukhov (https://github.com/ilkon/Tank-Auth)
 	 *
-	 * @param string      $identity   User's identity
-	 * @param string|null $ip_address IP address
-	 *                                Only used if track_login_ip_address is set to TRUE.
-	 *                                If NULL (default value), the current IP address is used.
-	 *                                Use get_last_attempt_ip($identity) to retrieve a user's last IP
-	 *
-	 * @return int
+	 * @param	string $identity
+	 * @return	int
 	 */
-	public function get_attempts_num($identity, $ip_address = NULL)
+	function get_attempts_num($identity)
 	{
-		if ($this->config->item('track_login_attempts', 'ion_auth'))
-		{
-			$this->db->select('1', FALSE);
-			$this->db->where('login', $identity);
-			if ($this->config->item('track_login_ip_address', 'ion_auth'))
-			{
-				if (!isset($ip_address))
-				{
-					$ip_address = $this->input->ip_address();
-				}
-				$this->db->where('ip_address', $ip_address);
-			}
-			$this->db->where('time >', time() - $this->config->item('lockout_time', 'ion_auth'), FALSE);
-			$qres = $this->db->get($this->tables['login_attempts']);
-			return $qres->num_rows();
-		}
-		return 0;
+        if ($this->config->item('track_login_attempts', 'ion_auth')) {
+            $ip_address = $this->_prepare_ip($this->input->ip_address());
+            $this->db->select('1', FALSE);
+            if ($this->config->item('track_login_ip_address', 'ion_auth')) {
+            	$this->db->where('ip_address', $ip_address);
+            	$this->db->where('login', $identity);
+            } else if (strlen($identity) > 0) $this->db->or_where('login', $identity);
+            $qres = $this->db->get($this->tables['login_attempts']);
+            return $qres->num_rows();
+        }
+        return 0;
 	}
 
 	/**
-	 * Get the last time a login attempt occurred from given identity
+	 * Get a boolean to determine if an account should be locked out due to
+	 * exceeded login attempts within a given period
 	 *
-	 * @param string      $identity   User's identity
-	 * @param string|null $ip_address IP address
-	 *                                Only used if track_login_ip_address is set to TRUE.
-	 *                                If NULL (default value), the current IP address is used.
-	 *                                Use get_last_attempt_ip($identity) to retrieve a user's last IP
-	 *
-	 * @return int The time of the last login attempt for a given IP-address or identity
+	 * @return	boolean
 	 */
-	public function get_last_attempt_time($identity, $ip_address = NULL)
-	{
-		if ($this->config->item('track_login_attempts', 'ion_auth'))
-		{
-			$this->db->select('time');
-			$this->db->where('login', $identity);
-			if ($this->config->item('track_login_ip_address', 'ion_auth'))
-			{
-				if (!isset($ip_address))
-				{
-					$ip_address = $this->input->ip_address();
-				}
-				$this->db->where('ip_address', $ip_address);
-			}
-			$this->db->order_by('id', 'desc');
+	public function is_time_locked_out($identity) {
+
+		return $this->is_max_login_attempts_exceeded($identity) && $this->get_last_attempt_time($identity) > time() - $this->config->item('lockout_time', 'ion_auth');
+	}
+
+	/**
+	 * Get the time of the last time a login attempt occured from given IP-address or identity
+	 *
+	 * @param	string $identity
+	 * @return	int
+	 */
+	public function get_last_attempt_time($identity) {
+		if ($this->config->item('track_login_attempts', 'ion_auth')) {
+			$ip_address = $this->_prepare_ip($this->input->ip_address());
+
+			$this->db->select_max('time');
+            if ($this->config->item('track_login_ip_address', 'ion_auth')) $this->db->where('ip_address', $ip_address);
+			else if (strlen($identity) > 0) $this->db->or_where('login', $identity);
 			$qres = $this->db->get($this->tables['login_attempts'], 1);
 
-			if ($qres->num_rows() > 0)
-			{
+			if($qres->num_rows() > 0) {
 				return $qres->row()->time;
 			}
 		}
@@ -1128,49 +1607,15 @@ class Ion_auth_model extends CI_Model
 	}
 
 	/**
-	 * Get the IP address of the last time a login attempt occurred from given identity
-	 *
-	 * @param string $identity User's identity
-	 *
-	 * @return string
-	 */
-	public function get_last_attempt_ip($identity)
-	{
-		if ($this->config->item('track_login_attempts', 'ion_auth') && $this->config->item('track_login_ip_address', 'ion_auth'))
-		{
-			$this->db->select('ip_address');
-			$this->db->where('login', $identity);
-			$this->db->order_by('id', 'desc');
-			$qres = $this->db->get($this->tables['login_attempts'], 1);
-
-			if ($qres->num_rows() > 0)
-			{
-				return $qres->row()->ip_address;
-			}
-		}
-
-		return '';
-	}
-
-	/**
+	 * increase_login_attempts
 	 * Based on code from Tank Auth, by Ilya Konyukhov (https://github.com/ilkon/Tank-Auth)
 	 *
-	 * Note: the current IP address will be used if track_login_ip_address config value is TRUE
-	 *
-	 * @param string $identity User's identity
-	 *
-	 * @return bool
-	 */
-	public function increase_login_attempts($identity)
-	{
-		if ($this->config->item('track_login_attempts', 'ion_auth'))
-		{
-			$data = ['ip_address' => '', 'login' => $identity, 'time' => time()];
-			if ($this->config->item('track_login_ip_address', 'ion_auth'))
-			{
-				$data['ip_address'] = $this->input->ip_address();
-			}
-			return $this->db->insert($this->tables['login_attempts'], $data);
+	 * @param string $identity
+	 **/
+	public function increase_login_attempts($identity) {
+		if ($this->config->item('track_login_attempts', 'ion_auth')) {
+			$ip_address = $this->_prepare_ip($this->input->ip_address());
+			return $this->db->insert_secure($this->tables['login_attempts'], array('ip_address' => $ip_address, 'login' => $identity, 'time' => time()));
 		}
 		return FALSE;
 	}
@@ -1179,47 +1624,22 @@ class Ion_auth_model extends CI_Model
 	 * clear_login_attempts
 	 * Based on code from Tank Auth, by Ilya Konyukhov (https://github.com/ilkon/Tank-Auth)
 	 *
-	 * @param string      $identity                   User's identity
-	 * @param int         $old_attempts_expire_period In seconds, any attempts older than this value will be removed.
-	 *                                                It is used for regularly purging the attempts table.
-	 *                                                (for security reason, minimum value is lockout_time config value)
-	 * @param string|null $ip_address                 IP address
-	 *                                                Only used if track_login_ip_address is set to TRUE.
-	 *                                                If NULL (default value), the current IP address is used.
-	 *                                                Use get_last_attempt_ip($identity) to retrieve a user's last IP
-	 *
-	 * @return bool
-	 */
-	public function clear_login_attempts($identity, $old_attempts_expire_period = 86400, $ip_address = NULL)
-	{
-		if ($this->config->item('track_login_attempts', 'ion_auth'))
-		{
-			// Make sure $old_attempts_expire_period is at least equals to lockout_time
-			$old_attempts_expire_period = max($old_attempts_expire_period, $this->config->item('lockout_time', 'ion_auth'));
+	 * @param string $identity
+	 **/
+	public function clear_login_attempts($identity, $expire_period = 86400) {
+		if ($this->config->item('track_login_attempts', 'ion_auth')) {
+			$ip_address = $this->_prepare_ip($this->input->ip_address());
 
-			$this->db->where('login', $identity);
-			if ($this->config->item('track_login_ip_address', 'ion_auth'))
-			{
-				if (!isset($ip_address))
-				{
-					$ip_address = $this->input->ip_address();
-				}
-				$this->db->where('ip_address', $ip_address);
-			}
+			$this->db->where(array('ip_address' => $ip_address, 'login' => $identity));
 			// Purge obsolete login attempts
-			$this->db->or_where('time <', time() - $old_attempts_expire_period, FALSE);
+			$this->db->or_where('time <', time() - $expire_period, FALSE);
 
 			return $this->db->delete($this->tables['login_attempts']);
 		}
 		return FALSE;
 	}
 
-	/**
-	 * @param int $limit
-	 *
-	 * @return static
-	 */
-	public function limit($limit)
+	public function limit($limit, $offset = 0)
 	{
 		$this->trigger_events('limit');
 		$this->_ion_limit = $limit;
@@ -1227,11 +1647,6 @@ class Ion_auth_model extends CI_Model
 		return $this;
 	}
 
-	/**
-	 * @param int $offset
-	 *
-	 * @return static
-	 */
 	public function offset($offset)
 	{
 		$this->trigger_events('offset');
@@ -1240,19 +1655,13 @@ class Ion_auth_model extends CI_Model
 		return $this;
 	}
 
-	/**
-	 * @param array|string $where
-	 * @param null|string  $value
-	 *
-	 * @return static
-	 */
 	public function where($where, $value = NULL)
 	{
 		$this->trigger_events('where');
 
 		if (!is_array($where))
 		{
-			$where = [$where => $value];
+			$where = array($where => $value);
 		}
 
 		array_push($this->_ion_where, $where);
@@ -1260,31 +1669,23 @@ class Ion_auth_model extends CI_Model
 		return $this;
 	}
 
-	/**
-	 * @param string      $like
-	 * @param string|null $value
-	 * @param string      $position
-	 *
-	 * @return static
-	 */
 	public function like($like, $value = NULL, $position = 'both')
 	{
 		$this->trigger_events('like');
 
-		array_push($this->_ion_like, [
-			'like'     => $like,
-			'value'    => $value,
-			'position' => $position
-		]);
+		if (!is_array($like))
+		{
+			$like = array($like => array(
+				'value'    => $value,
+				'position' => $position,
+			));
+		}
+
+		array_push($this->_ion_like, $like);
 
 		return $this;
 	}
 
-	/**
-	 * @param array|string $select
-	 *
-	 * @return static
-	 */
 	public function select($select)
 	{
 		$this->trigger_events('select');
@@ -1294,12 +1695,6 @@ class Ion_auth_model extends CI_Model
 		return $this;
 	}
 
-	/**
-	 * @param string $by
-	 * @param string $order
-	 *
-	 * @return static
-	 */
 	public function order_by($by, $order='desc')
 	{
 		$this->trigger_events('order_by');
@@ -1310,9 +1705,6 @@ class Ion_auth_model extends CI_Model
 		return $this;
 	}
 
-	/**
-	 * @return object|mixed
-	 */
 	public function row()
 	{
 		$this->trigger_events('row');
@@ -1322,21 +1714,15 @@ class Ion_auth_model extends CI_Model
 		return $row;
 	}
 
-	/**
-	 * @return array|mixed
-	 */
 	public function row_array()
 	{
-		$this->trigger_events(['row', 'row_array']);
+		$this->trigger_events(array('row', 'row_array'));
 
 		$row = $this->response->row_array();
 
 		return $row;
 	}
 
-	/**
-	 * @return mixed
-	 */
 	public function result()
 	{
 		$this->trigger_events('result');
@@ -1346,24 +1732,18 @@ class Ion_auth_model extends CI_Model
 		return $result;
 	}
 
-	/**
-	 * @return array|mixed
-	 */
 	public function result_array()
 	{
-		$this->trigger_events(['result', 'result_array']);
+		$this->trigger_events(array('result', 'result_array'));
 
 		$result = $this->response->result_array();
 
 		return $result;
 	}
 
-	/**
-	 * @return int
-	 */
 	public function num_rows()
 	{
-		$this->trigger_events(['num_rows']);
+		$this->trigger_events(array('num_rows'));
 
 		$result = $this->response->num_rows();
 
@@ -1373,140 +1753,112 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * users
 	 *
-	 * @param array|null $groups
-	 *
-	 * @return static
+	 * @return object Users
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function users($groups = NULL)
-	{
-		$this->trigger_events('users');
+    {
+        $this->trigger_events('users');
 
-		if (isset($this->_ion_select) && !empty($this->_ion_select))
-		{
-			foreach ($this->_ion_select as $select)
-			{
-				$this->db->select($select);
-			}
+        //default selects
+        $this->select_all_secure($this->tables['users']);
+        $this->select(array($this->dx('id') . " as user_id "), FALSE);
 
-			$this->_ion_select = [];
-		}
-		else
-		{
-			// default selects
-			$this->db->select([
-			    $this->tables['users'].'.*',
-			    $this->tables['users'].'.id as id',
-			    $this->tables['users'].'.id as user_id'
-			]);
-		}
+        if (isset($this->_ion_select))
+        {
+            foreach ($this->_ion_select as $select)
+            {
+                $this->db->select($select);
+            }
 
-		// filter by group id(s) if passed
-		if (isset($groups))
-		{
-			// build an array if only one group was passed
-			if (!is_array($groups))
-			{
-				$groups = [$groups];
-			}
+            $this->_ion_select = array();
+        }
 
-			// join and then run a where_in against the group ids
-			if (isset($groups) && !empty($groups))
-			{
-				$this->db->distinct();
-				$this->db->join(
-				    $this->tables['users_groups'],
-				    $this->tables['users_groups'].'.'.$this->join['users'].'='.$this->tables['users'].'.id',
-				    'inner'
-				);
-			}
+        //filter by group id(s) if passed
+        if (isset($groups))
+        {
+            //build an array if only one group was passed
+            if (is_numeric($groups))
+            {
+                $groups = Array($groups);
+            }
 
-			// verify if group name or group id was used and create and put elements in different arrays
-			$group_ids = [];
-			$group_names = [];
-			foreach($groups as $group)
-			{
-				if(is_numeric($group)) $group_ids[] = $group;
-				else $group_names[] = $group;
-			}
-			$or_where_in = (!empty($group_ids) && !empty($group_names)) ? 'or_where_in' : 'where_in';
-			// if group name was used we do one more join with groups
-			if(!empty($group_names))
-			{
-				$this->db->join($this->tables['groups'], $this->tables['users_groups'] . '.' . $this->join['groups'] . ' = ' . $this->tables['groups'] . '.id', 'inner');
-				$this->db->where_in($this->tables['groups'] . '.name', $group_names);
-			}
-			if(!empty($group_ids))
-			{
-				$this->db->{$or_where_in}($this->tables['users_groups'].'.'.$this->join['groups'], $group_ids);
-			}
-		}
+            //join and then run a where_in against the group ids
+            if (isset($groups) && !empty($groups))
+            {
+                $this->db->distinct();
+                $this->db->join(
+                        $this->tables['users_groups'], $this->tables['users_groups'] . '.user_id = ' . $this->tables['users'] . '.id', 'inner'
+                );
 
-		$this->trigger_events('extra_where');
+                $this->db->where_in($this->tables['users_groups'] . '.group_id', $groups);
+            }
+        }
 
-		// run each where that was passed
-		if (isset($this->_ion_where) && !empty($this->_ion_where))
-		{
-			foreach ($this->_ion_where as $where)
-			{
-				$this->db->where($where);
-			}
+        $this->trigger_events('extra_where');
 
-			$this->_ion_where = [];
-		}
+        //run each where that was passed
+        if (isset($this->_ion_where))
+        {
+            foreach ($this->_ion_where as $where)
+            {
+                //$this->db->where($where);
+                foreach ($where as $k => $v)
+                {
+                    if (preg_match('/id/i', $k) || preg_match('/\.id/i', $k))
+                    {
+                        $this->db->where("$k = '$v'", NULL, FALSE);
+                    }
+                    else
+                    {
+                        $this->db->where($this->dx($k) . " = '$v'", NULL, FALSE);
+                    }
+                }
+            }
 
-		if (isset($this->_ion_like) && !empty($this->_ion_like))
-		{
-			foreach ($this->_ion_like as $like)
-			{
-				$this->db->or_like($like['like'], $like['value'], $like['position']);
-			}
+            $this->_ion_where = array();
+        }
 
-			$this->_ion_like = [];
-		}
+        if (isset($this->_ion_limit) && isset($this->_ion_offset))
+        {
+            $this->db->limit($this->_ion_limit, $this->_ion_offset);
 
-		if (isset($this->_ion_limit) && isset($this->_ion_offset))
-		{
-			$this->db->limit($this->_ion_limit, $this->_ion_offset);
+            $this->_ion_limit = NULL;
+            $this->_ion_offset = NULL;
+        }
+        else if (isset($this->_ion_limit))
+        {
+            $this->db->limit($this->_ion_limit);
 
-			$this->_ion_limit  = NULL;
-			$this->_ion_offset = NULL;
-		}
-		else if (isset($this->_ion_limit))
-		{
-			$this->db->limit($this->_ion_limit);
+            $this->_ion_limit = NULL;
+        }
 
-			$this->_ion_limit  = NULL;
-		}
+        //set the order
+        if (isset($this->_ion_order_by) && isset($this->_ion_order))
+        {
+            $this->db->order_by($this->_ion_order_by, $this->_ion_order);
 
-		// set the order
-		if (isset($this->_ion_order_by) && isset($this->_ion_order))
-		{
-			$this->db->order_by($this->_ion_order_by, $this->_ion_order);
+            $this->_ion_order = NULL;
+            $this->_ion_order_by = NULL;
+        }
 
-			$this->_ion_order    = NULL;
-			$this->_ion_order_by = NULL;
-		}
+        $this->response = $this->db->get($this->tables['users']);
 
-		$this->response = $this->db->get($this->tables['users']);
-
-		return $this;
-	}
+        return $this;
+    }
 
 	/**
 	 * user
 	 *
-	 * @param int|string|null $id
-	 *
-	 * @return static
+	 * @return object
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function user($id = NULL)
 	{
 		$this->trigger_events('user');
 
 		// if no id was passed use the current users id
-		$id = isset($id) ? $id : $this->session->userdata('user_id');
+		$id || $id = $this->session->userdata('user_id');
 
 		$this->limit(1);
 		$this->order_by($this->tables['users'].'.id', 'desc');
@@ -1520,92 +1872,29 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * get_users_groups
 	 *
-	 * @param int|string|bool $id
-	 *
-	 * @return CI_DB_result
+	 * @return array
 	 * @author Ben Edmunds
-	 */
-	public function get_users_groups($id = FALSE)
+	 **/
+	public function get_users_groups($id=FALSE)
 	{
 		$this->trigger_events('get_users_group');
 
 		// if no id was passed use the current users id
 		$id || $id = $this->session->userdata('user_id');
 
-		return $this->db->select($this->tables['users_groups'].'.'.$this->join['groups'].' as id, '.$this->tables['groups'].'.name, '.$this->tables['groups'].'.description')
+		return $this->db->select($this->tables['users_groups'].'.'.$this->join['groups'].' as id, '.$this->dx($this->tables['groups'].'.name').'as name,'.$this->dx($this->tables['groups'].'.description').'as description')
 		                ->where($this->tables['users_groups'].'.'.$this->join['users'], $id)
 		                ->join($this->tables['groups'], $this->tables['users_groups'].'.'.$this->join['groups'].'='.$this->tables['groups'].'.id')
 		                ->get($this->tables['users_groups']);
 	}
 
 	/**
-	 * @param int|string|array $check_group group(s) to check
-	 * @param int|string|bool  $id          user id
-	 * @param bool             $check_all   check if all groups is present, or any of the groups
-	 *
-	 * @return bool Whether the/all user(s) with the given ID(s) is/are in the given group
-	 * @author Phil Sturgeon
-	 **/
-	public function in_group($check_group, $id = FALSE, $check_all = FALSE)
-	{
-		$this->trigger_events('in_group');
-
-		$id || $id = $this->session->userdata('user_id');
-
-		if (!is_array($check_group))
-		{
-			$check_group = [$check_group];
-		}
-
-		if (isset($this->_cache_user_in_group[$id]))
-		{
-			$groups_array = $this->_cache_user_in_group[$id];
-		}
-		else
-		{
-			$users_groups = $this->get_users_groups($id)->result();
-			$groups_array = [];
-			foreach ($users_groups as $group)
-			{
-				$groups_array[$group->id] = $group->name;
-			}
-			$this->_cache_user_in_group[$id] = $groups_array;
-		}
-		foreach ($check_group as $key => $value)
-		{
-			$groups = (is_numeric($value)) ? array_keys($groups_array) : $groups_array;
-
-			/**
-			 * if !all (default), in_array
-			 * if all, !in_array
-			 */
-			if (in_array($value, $groups) xor $check_all)
-			{
-				/**
-				 * if !all (default), true
-				 * if all, false
-				 */
-				return !$check_all;
-			}
-		}
-
-		/**
-		 * if !all (default), false
-		 * if all, true
-		 */
-		return $check_all;
-	}
-
-	/**
 	 * add_to_group
 	 *
-	 * @param array|int|float|string $group_ids
-	 * @param bool|int|float|string  $user_id
-	 *
-	 * @return int
+	 * @return bool
 	 * @author Ben Edmunds
-	 */
-	public function add_to_group($group_ids, $user_id = FALSE)
+	 **/
+	public function add_to_group($group_ids, $user_id=false)
 	{
 		$this->trigger_events('add_to_group');
 
@@ -1614,7 +1903,7 @@ class Ion_auth_model extends CI_Model
 
 		if(!is_array($group_ids))
 		{
-			$group_ids = [$group_ids];
+			$group_ids = array($group_ids);
 		}
 
 		$return = 0;
@@ -1622,17 +1911,12 @@ class Ion_auth_model extends CI_Model
 		// Then insert each into the database
 		foreach ($group_ids as $group_id)
 		{
-			// Cast to float to support bigint data type
-			if ($this->db->insert($this->tables['users_groups'],
-								  [ $this->join['groups'] => (float)$group_id,
-									$this->join['users']  => (float)$user_id  ]))
+			if ($this->db->insert($this->tables['users_groups'], array( $this->join['groups'] => (int)$group_id, $this->join['users'] => (int)$user_id)))
 			{
-				if (isset($this->_cache_groups[$group_id]))
-				{
+				if (isset($this->_cache_groups[$group_id])) {
 					$group_name = $this->_cache_groups[$group_id];
 				}
-				else
-				{
+				else {
 					$group = $this->group($group_id)->result();
 					$group_name = $group[0]->name;
 					$this->_cache_groups[$group_id] = $group_name;
@@ -1640,7 +1924,7 @@ class Ion_auth_model extends CI_Model
 				$this->_cache_user_in_group[$user_id][$group_id] = $group_name;
 
 				// Return the number of groups added
-				$return++;
+				$return += 1;
 			}
 		}
 
@@ -1650,37 +1934,30 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * remove_from_group
 	 *
-	 * @param array|int|float|string|bool $group_ids
-	 * @param int|float|string|bool $user_id
-	 *
 	 * @return bool
 	 * @author Ben Edmunds
-	 */
-	public function remove_from_group($group_ids = FALSE, $user_id = FALSE)
+	 **/
+	public function remove_from_group($group_ids=false, $user_id=false)
 	{
 		$this->trigger_events('remove_from_group');
 
 		// user id is required
-		if (empty($user_id))
+		if(empty($user_id))
 		{
 			return FALSE;
 		}
 
 		// if group id(s) are passed remove user from the group(s)
-		if (!empty($group_ids))
+		if( ! empty($group_ids))
 		{
-			if (!is_array($group_ids))
+			if(!is_array($group_ids))
 			{
-				$group_ids = [$group_ids];
+				$group_ids = array($group_ids);
 			}
 
-			foreach ($group_ids as $group_id)
+			foreach($group_ids as $group_id)
 			{
-				// Cast to float to support bigint data type
-				$this->db->delete(
-					$this->tables['users_groups'],
-					[$this->join['groups'] => (float)$group_id, $this->join['users'] => (float)$user_id]
-				);
+				$this->db->delete($this->tables['users_groups'], array($this->join['groups'] => (int)$group_id, $this->join['users'] => (int)$user_id));
 				if (isset($this->_cache_user_in_group[$user_id]) && isset($this->_cache_user_in_group[$user_id][$group_id]))
 				{
 					unset($this->_cache_user_in_group[$user_id][$group_id]);
@@ -1692,10 +1969,8 @@ class Ion_auth_model extends CI_Model
 		// otherwise remove user from all groups
 		else
 		{
-			// Cast to float to support bigint data type
-			if ($return = $this->db->delete($this->tables['users_groups'], [$this->join['users'] => (float)$user_id]))
-			{
-				$this->_cache_user_in_group[$user_id] = [];
+			if ($return = $this->db->delete($this->tables['users_groups'], array($this->join['users'] => (int)$user_id))) {
+				$this->_cache_user_in_group[$user_id] = array();
 			}
 		}
 		return $return;
@@ -1704,11 +1979,12 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * groups
 	 *
-	 * @return static
+	 * @return object
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function groups()
 	{
+		$this->select_all_secure('groups');
 		$this->trigger_events('groups');
 
 		// run each where that was passed
@@ -1718,7 +1994,7 @@ class Ion_auth_model extends CI_Model
 			{
 				$this->db->where($where);
 			}
-			$this->_ion_where = [];
+			$this->_ion_where = array();
 		}
 
 		if (isset($this->_ion_limit) && isset($this->_ion_offset))
@@ -1749,11 +2025,9 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * group
 	 *
-	 * @param int|string|null $id
-	 *
-	 * @return static
+	 * @return object
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function group($id = NULL)
 	{
 		$this->trigger_events('group');
@@ -1772,13 +2046,10 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * update
 	 *
-	 * @param int|string $id
-	 * @param array      $data
-	 *
 	 * @return bool
 	 * @author Phil Sturgeon
-	 */
-	public function update($id, array $data)
+	 **/
+	public function update($id,$data=array(),$skip_validation = FALSE)
 	{
 		$this->trigger_events('pre_update_user');
 
@@ -1791,7 +2062,7 @@ class Ion_auth_model extends CI_Model
 			$this->db->trans_rollback();
 			$this->set_error('account_creation_duplicate_identity');
 
-			$this->trigger_events(['post_update_user', 'post_update_user_unsuccessful']);
+			$this->trigger_events(array('post_update_user', 'post_update_user_unsuccessful'));
 			$this->set_error('update_unsuccessful');
 
 			return FALSE;
@@ -1806,16 +2077,7 @@ class Ion_auth_model extends CI_Model
 			{
 				if( ! empty($data['password']))
 				{
-					$user = $this->user($id)->row();
-					$data['password'] = $this->hash_password($data['password'], $user->{$this->identity_column});
-					if ($data['password'] === FALSE)
-					{
-						$this->db->trans_rollback();
-						$this->trigger_events(['post_update_user', 'post_update_user_unsuccessful']);
-						$this->set_error('update_unsuccessful');
-
-						return FALSE;
-					}
+					$data['password'] = $this->hash_password($data['password'], $user->salt);
 				}
 				else
 				{
@@ -1826,67 +2088,37 @@ class Ion_auth_model extends CI_Model
 		}
 
 		$this->trigger_events('extra_where');
-		$this->db->update($this->tables['users'], $data, ['id' => $id]);
+		$this->update_secure_data($user->id,$this->tables['users'], $data);
 
 		if ($this->db->trans_status() === FALSE)
 		{
 			$this->db->trans_rollback();
 
-			$this->trigger_events(['post_update_user', 'post_update_user_unsuccessful']);
+			$this->trigger_events(array('post_update_user', 'post_update_user_unsuccessful'));
 			$this->set_error('update_unsuccessful');
 			return FALSE;
 		}
 
 		$this->db->trans_commit();
 
-		$this->trigger_events(['post_update_user', 'post_update_user_successful']);
+		$this->trigger_events(array('post_update_user', 'post_update_user_successful'));
 		$this->set_message('update_successful');
 		return TRUE;
 	}
 
 	/**
-	 * delete_user
-	 *
-	 * @param int|string $id
-	 *
-	 * @return bool
-	 * @author Phil Sturgeon
-	 */
-	public function delete_user($id)
-	{
-		$this->trigger_events('pre_delete_user');
-
-		$this->db->trans_begin();
-
-		// remove user from groups
-		$this->remove_from_group(NULL, $id);
-
-		// delete user from users table should be placed after remove from group
-		$this->db->delete($this->tables['users'], ['id' => $id]);
-
-		if ($this->db->trans_status() === FALSE)
-		{
-			$this->db->trans_rollback();
-			$this->trigger_events(['post_delete_user', 'post_delete_user_unsuccessful']);
-			$this->set_error('delete_unsuccessful');
-			return FALSE;
-		}
-
-		$this->db->trans_commit();
-
-		$this->trigger_events(['post_delete_user', 'post_delete_user_successful']);
-		$this->set_message('delete_successful');
-		return TRUE;
-	}
-
+	* delete_user
+	*
+	* @return bool
+	* @author Phil Sturgeon
+	**/
+	
 	/**
 	 * update_last_login
 	 *
-	 * @param int|string $id
-	 *
 	 * @return bool
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function update_last_login($id)
 	{
 		$this->trigger_events('update_last_login');
@@ -1895,7 +2127,7 @@ class Ion_auth_model extends CI_Model
 
 		$this->trigger_events('extra_where');
 
-		$this->db->update($this->tables['users'], ['last_login' => time()], ['id' => $id]);
+		$this->update_secure_data($id,$this->tables['users'], array('last_login' => time()));
 
 		return $this->db->affected_rows() == 1;
 	}
@@ -1903,11 +2135,9 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * set_lang
 	 *
-	 * @param string $lang
-	 *
 	 * @return bool
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function set_lang($lang = 'en')
 	{
 		$this->trigger_events('set_lang');
@@ -1915,7 +2145,7 @@ class Ion_auth_model extends CI_Model
 		// if the user_expire is set to zero we'll set the expiration two years from now.
 		if($this->config->item('user_expire', 'ion_auth') === 0)
 		{
-			$expire = self::MAX_COOKIE_LIFETIME;
+			$expire = (60*60*24*365*2);
 		}
 		// otherwise use what is set
 		else
@@ -1923,11 +2153,11 @@ class Ion_auth_model extends CI_Model
 			$expire = $this->config->item('user_expire', 'ion_auth');
 		}
 
-		set_cookie([
+		set_cookie(array(
 			'name'   => 'lang_code',
 			'value'  => $lang,
 			'expire' => $expire
-		]);
+		));
 
 		return TRUE;
 	}
@@ -1935,24 +2165,21 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * set_session
 	 *
-	 * @param object $user
-	 *
 	 * @return bool
 	 * @author jrmadsen67
-	 */
+	 **/
 	public function set_session($user)
 	{
+
 		$this->trigger_events('pre_set_session');
 
-		$session_data = [
-		    'identity'                 => $user->{$this->identity_column},
-		    $this->identity_column     => $user->{$this->identity_column},
-		    'email'                    => $user->email,
-		    'user_id'                  => $user->id, //everyone likes to overwrite id so we'll use user_id
-		    'old_last_login'           => $user->last_login,
-		    'last_check'               => time(),
-		    'ion_auth_session_hash'    => $this->config->item('session_hash', 'ion_auth'),
-		];
+		$session_data = array(
+		    'identity'             => $user->{$this->identity_column},
+		    $this->identity_column             => $user->{$this->identity_column},
+		    'email'                => $user->email,
+		    'user_id'              => $user->id, //everyone likes to overwrite id so we'll use user_id
+		    'old_last_login'       => $user->last_login
+		);
 
 		$this->session->set_userdata($session_data);
 
@@ -1962,141 +2189,122 @@ class Ion_auth_model extends CI_Model
 	}
 
 	/**
-	 * Set a user to be remembered
-	 *
-	 * Implemented as described in
-	 * https://paragonie.com/blog/2015/04/secure-authentication-php-with-long-term-persistence
-	 *
-	 * @param string $identity
+	 * remember_user
 	 *
 	 * @return bool
 	 * @author Ben Edmunds
-	 */
-	public function remember_user($identity)
+	 **/
+	public function remember_user($id)
 	{
 		$this->trigger_events('pre_remember_user');
 
-		if (!$identity)
+		if (!$id)
 		{
 			return FALSE;
 		}
 
-		// Generate random tokens
-		$token = $this->_generate_selector_validator_couple();
+		$user = $this->user($id)->row();
 
-		if ($token->validator_hashed)
+		$salt = $this->salt();
+
+		$this->update_secure_data($id,$this->tables['users'], array('remember_code' => $salt));
+
+		if ($this->db->affected_rows() > -1)
 		{
-			$this->db->update($this->tables['users'],
-								[ 'remember_selector' => $token->selector,
-								  'remember_code' => $token->validator_hashed ],
-								[ $this->identity_column => $identity ]);
-
-			if ($this->db->affected_rows() > -1)
+			// if the user_expire is set to zero we'll set the expiration two years from now.
+			if($this->config->item('user_expire', 'ion_auth') === 0)
 			{
-				// if the user_expire is set to zero we'll set the expiration two years from now.
-				if($this->config->item('user_expire', 'ion_auth') === 0)
-				{
-					$expire = self::MAX_COOKIE_LIFETIME;
-				}
-				// otherwise use what is set
-				else
-				{
-					$expire = $this->config->item('user_expire', 'ion_auth');
-				}
-
-				set_cookie([
-					'name'   => $this->config->item('remember_cookie_name', 'ion_auth'),
-					'value'  => $token->user_code,
-					'expire' => $expire,
-					'httponly' => TRUE,
-				]);
-
-				$this->trigger_events(['post_remember_user', 'remember_user_successful']);
-				return TRUE;
+				$expire = (60*60*24*365*2);
 			}
+			// otherwise use what is set
+			else
+			{
+				$expire = $this->config->item('user_expire', 'ion_auth');
+			}
+
+			set_cookie(array(
+			    'name'   => $this->config->item('identity_cookie_name', 'ion_auth'),
+			    'value'  => $user->{$this->identity_column},
+			    'expire' => $expire
+			));
+
+			set_cookie(array(
+			    'name'   => $this->config->item('remember_cookie_name', 'ion_auth'),
+			    'value'  => $salt,
+			    'expire' => $expire
+			));
+
+			$this->trigger_events(array('post_remember_user', 'remember_user_successful'));
+			return TRUE;
 		}
 
-		$this->trigger_events(['post_remember_user', 'remember_user_unsuccessful']);
+		$this->trigger_events(array('post_remember_user', 'remember_user_unsuccessful'));
 		return FALSE;
 	}
 
 	/**
-	 * Login automatically a user with the "Remember me" feature
-	 * Implemented as described in
-	 * https://paragonie.com/blog/2015/04/secure-authentication-php-with-long-term-persistence
+	 * login_remembed_user
 	 *
 	 * @return bool
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function login_remembered_user()
-	{
-		$this->trigger_events('pre_login_remembered_user');
+    {
+        $this->trigger_events('pre_login_remembered_user');
 
-		// Retrieve token from cookie
-		$remember_cookie = get_cookie($this->config->item('remember_cookie_name', 'ion_auth'));
-		$token = $this->_retrieve_selector_validator_couple($remember_cookie);
+        //check for valid data
+        if (!get_cookie('identity') || !get_cookie('remember_code') || !$this->identity_check(get_cookie('identity')))
+        {
+            $this->trigger_events(array('post_login_remembered_user', 'post_login_remembered_user_unsuccessful'));
+            return FALSE;
+        }
 
-		if ($token === FALSE)
-		{
-			$this->trigger_events(['post_login_remembered_user', 'post_login_remembered_user_unsuccessful']);
-			return FALSE;
-		}
+         //get the user
+        $this->trigger_events('extra_where');
+        $this->select_secure($this->identity_column);
+        $this->db->select('id');
+        $this->db->where($this->dx($this->identity_column) ."='". get_cookie('identity'). "' ", NULL, FALSE);
+        $this->db->where($this->dx('remember_code')."='". get_cookie('remember_code'). "' ", NULL, FALSE);
+        $this->db->limit(1);
+        $query = $this->db->get($this->tables['users']);
 
-		// get the user with the selector
-		$this->trigger_events('extra_where');
-		$query = $this->db->select($this->identity_column . ', id, email, remember_code, last_login')
-						  ->where('remember_selector', $token->selector)
-						  ->where('active', 1)
-						  ->limit(1)
-						  ->get($this->tables['users']);
+        //if the user was found, sign them in
+        if ($query->num_rows() == 1)
+        {
+            $user = $query->row();
 
-		// Check that we got the user
-		if ($query->num_rows() === 1)
-		{
-			// Retrieve the information
-			$user = $query->row();
+            $this->update_last_login($user->id);
 
-			// Check the code against the validator
-			$identity = $user->{$this->identity_column};
-			if ($this->verify_password($token->validator, $user->remember_code, $identity))
-			{
-				$this->update_last_login($user->id);
+            $session_data = array(
+                $this->identity_column => $user->{$this->identity_column},
+                'id' => $user->id, //kept for backwards compatibility
+                'user_id' => $user->id, //everyone likes to overwrite id so we'll use user_id
+            );
 
-				$this->set_session($user);
+            $this->session->set_userdata($session_data);
 
-				$this->clear_forgotten_password_code($identity);
 
-				// extend the users cookies if the option is enabled
-				if ($this->config->item('user_extend_on_login', 'ion_auth'))
-				{
-					$this->remember_user($identity);
-				}
+            //extend the users cookies if the option is enabled
+            if ($this->config->item('user_extend_on_login', 'ion_auth'))
+            {
+                $this->remember_user($user->id);
+            }
 
-				// Regenerate the session (for security purpose: to avoid session fixation)
-				$this->session->sess_regenerate(FALSE);
+            $this->trigger_events(array('post_login_remembered_user', 'post_login_remembered_user_successful'));
+            return TRUE;
+        }
 
-				$this->trigger_events(['post_login_remembered_user', 'post_login_remembered_user_successful']);
-				return TRUE;
-			}
-		}
-		delete_cookie($this->config->item('remember_cookie_name', 'ion_auth'));
-
-		$this->trigger_events(['post_login_remembered_user', 'post_login_remembered_user_unsuccessful']);
-		return FALSE;
-	}
+        $this->trigger_events(array('post_login_remembered_user', 'post_login_remembered_user_unsuccessful'));
+        return FALSE;
+    }
 
 
 	/**
 	 * create_group
 	 *
-	 * @param string|bool $group_name
-	 * @param string      $group_description
-	 * @param array       $additional_data
-	 *
-	 * @return int|bool The ID of the inserted group, or FALSE on failure
 	 * @author aditya menon
-	 */
-	public function create_group($group_name = FALSE, $group_description = '', $additional_data = [])
+	*/
+	public function create_group($group_name = FALSE, $group_description = '', $additional_data = array())
 	{
 		// bail if the group name was not passed
 		if(!$group_name)
@@ -2106,14 +2314,14 @@ class Ion_auth_model extends CI_Model
 		}
 
 		// bail if the group name already exists
-		$existing_group = $this->db->get_where($this->tables['groups'], ['name' => $group_name])->num_rows();
+		$existing_group = $this->db->get_where($this->tables['groups'], array('name' => $group_name))->num_rows();
 		if($existing_group !== 0)
 		{
 			$this->set_error('group_already_exists');
 			return FALSE;
 		}
 
-		$data = ['name'=>$group_name,'description'=>$group_description];
+		$data = array('name'=>$group_name,'description'=>$group_description);
 
 		// filter out any data passed that doesnt have a matching column in the groups table
 		// and merge the set group data and the additional data
@@ -2122,8 +2330,7 @@ class Ion_auth_model extends CI_Model
 		$this->trigger_events('extra_group_set');
 
 		// insert the new group
-		$this->db->insert($this->tables['groups'], $data);
-		$group_id = $this->db->insert_id($this->tables['groups'] . '_id_seq');
+		$group_id = $this->db->insert_secure($this->tables['groups'], $data);
 
 		// report success
 		$this->set_message('group_creation_successful');
@@ -2134,29 +2341,22 @@ class Ion_auth_model extends CI_Model
 	/**
 	 * update_group
 	 *
-	 * @param int|string|bool $group_id
-	 * @param string|bool     $group_name
-	 * @param array    $additional_data
-	 *
 	 * @return bool
 	 * @author aditya menon
-	 */
-	public function update_group($group_id = FALSE, $group_name = FALSE, $additional_data = [])
+	 **/
+	public function update_group($group_id = FALSE, $group_name = FALSE, $additional_data = array())
 	{
-		if (empty($group_id))
-		{
-			return FALSE;
-		}
+		if (empty($group_id)) return FALSE;
 
-		$data = [];
+		$data = array();
 
 		if (!empty($group_name))
 		{
 			// we are changing the name, so do some checks
 
 			// bail if the group name already exists
-			$existing_group = $this->db->get_where($this->tables['groups'], ['name' => $group_name])->row();
-			if (isset($existing_group->id) && $existing_group->id != $group_id)
+			$existing_group = $this->db->get_where($this->tables['groups'], array('name' => $group_name))->row();
+			if(isset($existing_group->id) && $existing_group->id != $group_id)
 			{
 				$this->set_error('group_already_exists');
 				return FALSE;
@@ -2166,21 +2366,25 @@ class Ion_auth_model extends CI_Model
 		}
 
 		// restrict change of name of the admin group
-		$group = $this->db->get_where($this->tables['groups'], ['id' => $group_id])->row();
-		if ($this->config->item('admin_group', 'ion_auth') === $group->name && $group_name !== $group->name)
-		{
-			$this->set_error('group_name_admin_not_alter');
-			return FALSE;
-		}
+        $group = $this->db->get_where($this->tables['groups'], array('id' => $group_id))->row();
+        if($this->config->item('admin_group', 'ion_auth') === $group->name && $group_name !== $group->name)
+        {
+            $this->set_error('group_name_admin_not_alter');
+            return FALSE;
+        }
+
+
+		// IMPORTANT!! Third parameter was string type $description; this following code is to maintain backward compatibility
+		// New projects should work with 3rd param as array
+		if (is_string($additional_data)) $additional_data = array('description' => $additional_data);
+
 
 		// filter out any data passed that doesnt have a matching column in the groups table
 		// and merge the set group data and the additional data
-		if (!empty($additional_data))
-		{
-			$data = array_merge($this->_filter_data($this->tables['groups'], $additional_data), $data);
-		}
+		if (!empty($additional_data)) $data = array_merge($this->_filter_data($this->tables['groups'], $additional_data), $data);
 
-		$this->db->update($this->tables['groups'], $data, ['id' => $group_id]);
+
+		$this->update_secure_data($group_id,$this->tables['groups'], $data);
 
 		$this->set_message('group_update_successful');
 
@@ -2188,13 +2392,11 @@ class Ion_auth_model extends CI_Model
 	}
 
 	/**
-	 * delete_group
-	 *
-	 * @param int|string|bool $group_id
-	 *
-	 * @return bool
-	 * @author aditya menon
-	 */
+	* delete_group
+	*
+	* @return bool
+	* @author aditya menon
+	**/
 	public function delete_group($group_id = FALSE)
 	{
 		// bail if mandatory param not set
@@ -2205,7 +2407,7 @@ class Ion_auth_model extends CI_Model
 		$group = $this->group($group_id)->row();
 		if($group->name == $this->config->item('admin_group', 'ion_auth'))
 		{
-			$this->trigger_events(['post_delete_group', 'post_delete_group_notallowed']);
+			$this->trigger_events(array('post_delete_group', 'post_delete_group_notallowed'));
 			$this->set_error('group_delete_notallowed');
 			return FALSE;
 		}
@@ -2215,32 +2417,25 @@ class Ion_auth_model extends CI_Model
 		$this->db->trans_begin();
 
 		// remove all users from this group
-		$this->db->delete($this->tables['users_groups'], [$this->join['groups'] => $group_id]);
+		$this->db->delete($this->tables['users_groups'], array($this->join['groups'] => $group_id));
 		// remove the group itself
-		$this->db->delete($this->tables['groups'], ['id' => $group_id]);
+		$this->db->delete($this->tables['groups'], array('id' => $group_id));
 
 		if ($this->db->trans_status() === FALSE)
 		{
 			$this->db->trans_rollback();
-			$this->trigger_events(['post_delete_group', 'post_delete_group_unsuccessful']);
+			$this->trigger_events(array('post_delete_group', 'post_delete_group_unsuccessful'));
 			$this->set_error('group_delete_unsuccessful');
 			return FALSE;
 		}
 
 		$this->db->trans_commit();
 
-		$this->trigger_events(['post_delete_group', 'post_delete_group_successful']);
+		$this->trigger_events(array('post_delete_group', 'post_delete_group_successful'));
 		$this->set_message('group_delete_successful');
 		return TRUE;
 	}
 
-	/**
-	 * @param string $event
-	 * @param string $name
-	 * @param string $class
-	 * @param string $method
-	 * @param array $arguments
-	 */
 	public function set_hook($event, $name, $class, $method, $arguments)
 	{
 		$this->_ion_hooks->{$event}[$name] = new stdClass;
@@ -2249,10 +2444,6 @@ class Ion_auth_model extends CI_Model
 		$this->_ion_hooks->{$event}[$name]->arguments = $arguments;
 	}
 
-	/**
-	 * @param string $event
-	 * @param string $name
-	 */
 	public function remove_hook($event, $name)
 	{
 		if (isset($this->_ion_hooks->{$event}[$name]))
@@ -2261,9 +2452,6 @@ class Ion_auth_model extends CI_Model
 		}
 	}
 
-	/**
-	 * @param string $event
-	 */
 	public function remove_hooks($event)
 	{
 		if (isset($this->_ion_hooks->$event))
@@ -2272,27 +2460,18 @@ class Ion_auth_model extends CI_Model
 		}
 	}
 
-	/**
-	 * @param string $event
-	 * @param string $name
-	 *
-	 * @return bool|mixed
-	 */
 	protected function _call_hook($event, $name)
 	{
 		if (isset($this->_ion_hooks->{$event}[$name]) && method_exists($this->_ion_hooks->{$event}[$name]->class, $this->_ion_hooks->{$event}[$name]->method))
 		{
 			$hook = $this->_ion_hooks->{$event}[$name];
 
-			return call_user_func_array([$hook->class, $hook->method], $hook->arguments);
+			return call_user_func_array(array($hook->class, $hook->method), $hook->arguments);
 		}
 
 		return FALSE;
 	}
 
-	/**
-	 * @param string|array $events
-	 */
 	public function trigger_events($events)
 	{
 		if (is_array($events) && !empty($events))
@@ -2319,12 +2498,9 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * Set the message delimiters
 	 *
-	 * @param string $start_delimiter
-	 * @param string $end_delimiter
-	 *
-	 * @return true
+	 * @return void
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function set_message_delimiters($start_delimiter, $end_delimiter)
 	{
 		$this->message_start_delimiter = $start_delimiter;
@@ -2338,12 +2514,9 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * Set the error delimiters
 	 *
-	 * @param string $start_delimiter
-	 * @param string $end_delimiter
-	 *
-	 * @return true
+	 * @return void
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function set_error_delimiters($start_delimiter, $end_delimiter)
 	{
 		$this->error_start_delimiter = $start_delimiter;
@@ -2357,11 +2530,9 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * Set a message
 	 *
-	 * @param string $message The message
-	 *
-	 * @return string The given message
+	 * @return void
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function set_message($message)
 	{
 		$this->messages[] = $message;
@@ -2369,14 +2540,16 @@ class Ion_auth_model extends CI_Model
 		return $message;
 	}
 
+
+
 	/**
 	 * messages
 	 *
 	 * Get the messages
 	 *
-	 * @return string
+	 * @return void
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function messages()
 	{
 		$_output = '';
@@ -2394,16 +2567,14 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * Get the messages as an array
 	 *
-	 * @param bool $langify
-	 *
 	 * @return array
 	 * @author Raul Baldner Junior
-	 */
+	 **/
 	public function messages_array($langify = TRUE)
 	{
 		if ($langify)
 		{
-			$_output = [];
+			$_output = array();
 			foreach ($this->messages as $message)
 			{
 				$messageLang = $this->lang->line($message) ? $this->lang->line($message) : '##' . $message . '##';
@@ -2417,31 +2588,31 @@ class Ion_auth_model extends CI_Model
 		}
 	}
 
+
 	/**
 	 * clear_messages
 	 *
 	 * Clear messages
 	 *
-	 * @return true
+	 * @return void
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function clear_messages()
 	{
-		$this->messages = [];
+		$this->messages = array();
 
 		return TRUE;
 	}
+
 
 	/**
 	 * set_error
 	 *
 	 * Set an error message
 	 *
-	 * @param string $error The error to set
-	 *
-	 * @return string The given error
+	 * @return void
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function set_error($error)
 	{
 		$this->errors[] = $error;
@@ -2454,9 +2625,9 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * Get the error message
 	 *
-	 * @return string
+	 * @return void
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function errors()
 	{
 		$_output = '';
@@ -2474,16 +2645,14 @@ class Ion_auth_model extends CI_Model
 	 *
 	 * Get the error messages as an array
 	 *
-	 * @param bool $langify
-	 *
 	 * @return array
 	 * @author Raul Baldner Junior
-	 */
+	 **/
 	public function errors_array($langify = TRUE)
 	{
 		if ($langify)
 		{
-			$_output = [];
+			$_output = array();
 			foreach ($this->errors as $error)
 			{
 				$errorLang = $this->lang->line($error) ? $this->lang->line($error) : '##' . $error . '##';
@@ -2497,62 +2666,27 @@ class Ion_auth_model extends CI_Model
 		}
 	}
 
+
 	/**
 	 * clear_errors
 	 *
 	 * Clear Errors
 	 *
-	 * @return true
+	 * @return void
 	 * @author Ben Edmunds
-	 */
+	 **/
 	public function clear_errors()
 	{
-		$this->errors = [];
+		$this->errors = array();
 
 		return TRUE;
 	}
 
-	/**
-	 * Internal function to set a password in the database
-	 *
-	 * @param string $identity
-	 * @param string $password
-	 *
-	 * @return bool
-	 */
-	protected function _set_password_db($identity, $password)
-	{
-		$hash = $this->hash_password($password, $identity);
 
-		if ($hash === FALSE)
-		{
-			return FALSE;
-		}
 
-		// When setting a new password, invalidate any other token
-		$data = [
-			'password' => $hash,
-			'remember_code' => NULL,
-			'forgotten_password_code' => NULL,
-			'forgotten_password_time' => NULL
-		];
-
-		$this->trigger_events('extra_where');
-
-		$this->db->update($this->tables['users'], $data, [$this->identity_column => $identity]);
-
-		return $this->db->affected_rows() == 1;
-	}
-
-	/**
-	 * @param string $table
-	 * @param array  $data
-	 *
-	 * @return array
-	 */
 	protected function _filter_data($table, $data)
 	{
-		$filtered_data = [];
+		$filtered_data = array();
 		$columns = $this->db->list_fields($table);
 
 		if (is_array($data))
@@ -2567,240 +2701,130 @@ class Ion_auth_model extends CI_Model
 		return $filtered_data;
 	}
 
-
-	/** Generate a random token
-	 * Inspired from http://php.net/manual/en/function.random-bytes.php#118932
-	 *
-	 * @param int $result_length
-	 * @return string
-	 */
-	protected function _random_token($result_length = 32)
-	{
-		if(!isset($result_length) || intval($result_length) <= 8 ){
-			$result_length = 32;
-		}
-
-		// Try random_bytes: PHP 7
-		if (function_exists('random_bytes')) {
-			return bin2hex(random_bytes($result_length / 2));
-		}
-
-		// Try mcrypt
-		if (function_exists('mcrypt_create_iv')) {
-			return bin2hex(mcrypt_create_iv($result_length / 2, MCRYPT_DEV_URANDOM));
-		}
-
-		// Try openssl
-		if (function_exists('openssl_random_pseudo_bytes')) {
-			return bin2hex(openssl_random_pseudo_bytes($result_length / 2));
-		}
-
-		// No luck!
-		return FALSE;
+	protected function _prepare_ip($ip_address) {
+		// just return the string IP address now for better compatibility
+		return $ip_address;
 	}
 
-	/** Retrieve hash parameter according to options
-	 *
-	 * @param string	$identity
-	 *
-	 * @return array|bool
-	 */
-	protected function _get_hash_parameters($identity = NULL)
+
+	public function get_user($id=0)
 	{
-		// Check if user is administrator or not
-		$is_admin = FALSE;
-		if ($identity)
+		$this->select_all_secure('users');
+		$this->db->select('*');
+		if($id)
 		{
-			$user_id = $this->get_user_id_from_identity($identity);
-			if ($user_id && $this->in_group($this->config->item('admin_group', 'ion_auth'), $user_id))
-			{
-				$is_admin = TRUE;
-			}
-		}
-
-		$params = FALSE;
-		switch ($this->hash_method)
+			$this->db->where('id',$id);
+			return $this->db->get('users')->row();
+		}else
 		{
-			case 'bcrypt':
-				$params = [
-					'cost' => $is_admin ? $this->config->item('bcrypt_admin_cost', 'ion_auth')
-										: $this->config->item('bcrypt_default_cost', 'ion_auth')
-				];
-				break;
-
-			case 'argon2':
-				$params = $is_admin ? $this->config->item('argon2_admin_params', 'ion_auth')
-									: $this->config->item('argon2_default_params', 'ion_auth');
-				break;
-
-			default:
-				// Do nothing
+			return $this->db->get('users')->result();
 		}
+	}	
 
-		return $params;
-	}
+	public function is_in_group($user_id, $group_id)
+    {
+        $this->db->where('user_id', $user_id);
+        $this->db->where('group_id', $group_id);
+        $groups = $this->db->get('users_groups')->result();
 
-	/** Retrieve hash algorithm according to options
-	 *
-	 * @return string|bool
-	 */
-	protected function _get_hash_algo()
+        return count(($groups)) ? TRUE : FALSE;
+    }
+
+	function my_users($groups)
+    {
+        $this->select_all_secure($this->tables['users']);
+        $this->select(array($this->dx('id') . " as user_id "), FALSE);
+         $this->db->distinct();
+                $this->db->join(
+                        $this->tables['users_groups'], $this->tables['users_groups'] . '.user_id = ' . $this->tables['users'] . '.id', 'inner'
+                );
+
+                $this->db->where_in($this->tables['users_groups'] . '.group_id', $groups);
+
+           $this->response = $this->db->get($this->tables['users']);
+
+        return $this;
+    }
+
+    function get_group_by_name($name='')
+    {
+    	//$this->select_all_secure('groups');
+    	$this->db->select('id');
+    	$this->db->where($this->dx('name').'="'.$name.'"',NULL,FALSE);
+
+    	return $this->db->get('groups')->row();
+    }
+
+    function get_user_by_email($email = ''){
+    	if($email){
+	    	$this->select_all_secure('users');
+			$this->db->where($this->dx('email').' = "'.$email.'"',NULL,FALSE);
+			return $this->db->get('users')->row();
+		}
+    }
+
+    function get_user_by_phone($phone = ''){
+    	if($phone){
+	    	$this->select_all_secure('users');
+			//$this->db->where($this->dx('phone').' = "'.$phone.'"',NULL,FALSE);
+			$this->db->where('('.$this->dx('users.phone').'="'.$phone.'" OR '.$this->dx('users.phone').' = "'.valid_phone($phone).'"  OR '.$this->dx('users.phone').' = "+'.valid_phone($phone).'" OR '.$this->dx('users.phone').' ="+'.$phone.'" OR '.$this->dx('users.phone').' ="'.str_replace('+','', $phone).'" )',NULL,FALSE);
+			return $this->db->get('users')->row();
+		}
+    }
+
+    function get_user_by_identity($identity = ''){
+		$this->select_all_secure($this->tables['users']);
+		if(valid_phone($identity)){
+			$this->db->where('('.$this->dx('users.phone').'="'.$identity.'" OR '.$this->dx('users.phone').' = "'.valid_phone($identity).'"  OR '.$this->dx('users.phone').' = "+'.valid_phone($identity).'" OR '.$this->dx('users.phone').' ="+'.$identity.'" OR '.$this->dx('users.phone').' ="'.str_replace('+','', $identity).'" )',NULL,FALSE);
+			return $this->db->get('users')->row();
+		}else{
+			$this->db->where("CONVERT(".$this->dx('users.email')." using 'latin1') = '".$identity."'",NULL,FALSE);
+			//$this->db->where($this->dx('users.email').'="'.trim($identity).'"',NULL,FALSE);
+			$user = $this->db->get('users')->row();
+			//print_r($user);
+			//die;
+			return $user;
+		}
+    }
+
+    public function delete_user($id)
 	{
-		$algo = FALSE;
-		switch ($this->hash_method)
+		$this->trigger_events('pre_delete_user');
+
+		$this->db->trans_begin();
+
+		// remove user from groups
+		$this->remove_from_group(NULL, $id);
+
+		// delete user from users table should be placed after remove from group
+		$this->db->delete($this->tables['users'], array('id' => $id));
+
+		// if user does not exist in database then it returns FALSE else removes the user from groups
+		if ($this->db->affected_rows() == 0)
 		{
-			case 'bcrypt':
-				$algo = PASSWORD_BCRYPT;
-				break;
-
-			case 'argon2':
-				$algo = PASSWORD_ARGON2I;
-				break;
-
-			default:
-				// Do nothing
+		    return FALSE;
 		}
 
-		return $algo;
-	}
-
-	/**
-	 * Generate a random selector/validator couple
-	 * This is a user code
-	 *
-	 * @param $selector_size int	size of the selector token
-	 * @param $validator_size int	size of the validator token
-	 *
-	 * @return object
-	 * 			->selector			simple token to retrieve the user (to store in DB)
-	 * 			->validator_hashed	token (hashed) to validate the user (to store in DB)
-	 * 			->user_code			code to be used user-side (in cookie or URL)
-	 */
-	protected function _generate_selector_validator_couple($selector_size = 40, $validator_size = 128)
-	{
-		// The selector is a simple token to retrieve the user
-		$selector = $this->_random_token($selector_size);
-
-		// The validator will strictly validate the user and should be more complex
-		$validator = $this->_random_token($validator_size);
-
-		// The validator is hashed for storing in DB (avoid session stealing in case of DB leaked)
-		$validator_hashed = $this->hash_password($validator);
-
-		// The code to be used user-side
-		$user_code = "$selector.$validator";
-
-		return (object) [
-			'selector' => $selector,
-			'validator_hashed' => $validator_hashed,
-			'user_code' => $user_code,
-		];
-	}
-
-	/**
-	 * Retrieve remember cookie info
-	 *
-	 * @param $user_code string	A user code of the form "selector.validator"
-	 *
-	 * @return object
-	 * 			->selector		simple token to retrieve the user in DB
-	 * 			->validator		token to validate the user (check against hashed value in DB)
-	 */
-	protected function _retrieve_selector_validator_couple($user_code)
-	{
-		// Check code
-		if ($user_code)
+		if ($this->db->trans_status() === FALSE)
 		{
-			$tokens = explode('.', $user_code);
-
-			// Check tokens
-			if (count($tokens) === 2)
-			{
-				return (object) [
-					'selector' => $tokens[0],
-					'validator' => $tokens[1]
-				];
-			}
-		}
-
-		return FALSE;
-	}
-
-	/**
-	 * Handle legacy sha1 password
-	 *
-	 * We expect the configuration to still have:
-	 *		store_salt
-	 *		salt_length
-	 *
-	 * @TODO to be removed in later version
-	 *
-	 * @param string	$identity
-	 * @param string	$password
-	 * @param string	$hashed_password_db
-	 *
-	 * @return bool
-	 **/
-	protected function _password_verify_sha1_legacy($identity, $password, $hashed_password_db)
-	{
-		$this->trigger_events('pre_sha1_password_migration');
-
-		if ($this->config->item('store_salt', 'ion_auth'))
-		{
-			// Salt is store at the side, retrieve it
-			$query = $this->db->select('salt')
-							  ->where($this->identity_column, $identity)
-							  ->limit(1)
-							  ->get($this->tables['users']);
-
-			$salt_db = $query->row();
-
-			if ($query->num_rows() !== 1)
-			{
-				$this->trigger_events(['post_sha1_password_migration', 'post_sha1_password_migration_unsuccessful']);
-				return FALSE;
-			}
-
-			$hashed_password = sha1($password . $salt_db->salt);
-		}
-		else
-		{
-			// Salt is stored along with password
-			$salt_length = $this->config->item('salt_length', 'ion_auth');
-
-			if (!$salt_length)
-			{
-				$this->trigger_events(['post_sha1_password_migration', 'post_sha1_password_migration_unsuccessful']);
-				return FALSE;
-			}
-
-			$salt = substr($hashed_password_db, 0, $salt_length);
-
-			$hashed_password =  $salt . substr(sha1($salt . $password), 0, -$salt_length);
-		}
-
-		// Now we can compare them
-		if($hashed_password === $hashed_password_db)
-		{
-			// Password is good, migrate it to latest
-			$result = $this->_set_password_db($identity, $password);
-
-			if ($result)
-			{
-				$this->trigger_events(['post_sha1_password_migration', 'post_sha1_password_migration_successful']);
-			}
-			else
-			{
-				$this->trigger_events(['post_sha1_password_migration', 'post_sha1_password_migration_unsuccessful']);
-			}
-
-			return $result;
-		}
-		else
-		{
-			// Password mismatch, we cannot migrate...
-			$this->trigger_events(['post_sha1_password_migration', 'post_sha1_password_migration_unsuccessful']);
+			$this->db->trans_rollback();
+			$this->trigger_events(array('post_delete_user', 'post_delete_user_unsuccessful'));
+			$this->set_error('delete_unsuccessful');
 			return FALSE;
 		}
+
+		$this->db->trans_commit();
+
+		$this->trigger_events(array('post_delete_user', 'post_delete_user_successful'));
+		$this->set_message('delete_successful');
+		return TRUE;
 	}
+
+	function generate_one_time_password($one_time_password = ''){
+		$salt = $this->store_salt ? $this->salt() : FALSE;
+		$password = $this->hash_password($one_time_password, $salt);
+		return $password;
+	}
+
+    
 }

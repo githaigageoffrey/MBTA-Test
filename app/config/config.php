@@ -51,12 +51,8 @@ if(empty($_POST)){
 	//use this option when submitting forms, eliminates the 404 page experienced on mobile and tabs
 	$config['uri_protocol']	= 'REQUEST_URI';
 }else{
-	if(preg_match('/(eazzykikundidemo\.co)/',$_SERVER['HTTP_HOST'])||preg_match('/(eazzykikundidemo\.local)/',$_SERVER['HTTP_HOST'])||preg_match('/(eazzykikundi\.local)/',$_SERVER['HTTP_HOST'])||preg_match('/(eazzykikundi\.co)/',$_SERVER['HTTP_HOST'])){
-		$config['uri_protocol']	= 'REQUEST_URI';
-	}else{
-		$config['uri_protocol']	= 'QUERY_STRING';
-
-	}
+	$config['uri_protocol']	= 'REQUEST_URI';
+	
 }
 
 
@@ -397,16 +393,11 @@ $config['sess_regenerate_destroy'] = FALSE;
 */
 $config['cookie_prefix']	= '';
 
-if(preg_match('/eazzykikundidemo\.com/',$_SERVER['HTTP_HOST'])){
-	$config['cookie_domain']	= ".eazzykikundidemo.com";
-}else if(preg_match('/eazzykikundi\.local/',$_SERVER['HTTP_HOST'])){
-	$config['cookie_domain']	= ".eazzykikundi.local";
-}else if(preg_match('/eazzykikundi\.com/',$_SERVER['HTTP_HOST'])){
-	$config['cookie_domain']	= ".eazzykikundi.com";
+if(preg_match('/\.com/',$_SERVER['HTTP_HOST'])){
+	$config['cookie_domain']	= ".mbta-test.com";
 }else if(preg_match('/eazzykikundidemo\.com/',$_SERVER['HTTP_HOST'])){
-	$config['cookie_domain']	= ".eazzykikundidemo.com";
-}
-else{
+	$config['cookie_domain']	= ".mbta-test.local";
+}else{
 	$config['cookie_domain']	= "";
 	$config['language_domain']	= "";
 		
@@ -448,36 +439,9 @@ $config['standardize_newlines'] = FALSE;
 |          for backwards compatibility purposes!
 |
 */
-$urls_exempted_from_xss_clean = array(
-	'email_templates/edit',
-	'email_templates/create',
-	'sms_templates/create',
-	'sms_templates/edit',
-	'menus/create',
-	'menus/edit',
-	'admin_menus/create',
-	'admin_menus/edit',
-	'partner_menus/create',
-	'partner_menus/edit',
-);
-$uri_string = $_SERVER["REQUEST_URI"];
-$disable_xss_clean = FALSE;
-foreach ($urls_exempted_from_xss_clean as $key_xss => $value_xss) {
-    $access_value = explode('/', $value_xss);
-    if(preg_match('/'.$access_value[0].'/', $uri_string)){
-    	$disable_xss_clean = TRUE;
-    	break;
-    }
-}
-if($disable_xss_clean){
-	$config['global_xss_filtering'] = FALSE;
-}else{
-	$config['global_xss_filtering'] = TRUE;
-}
 
-// if(preg_match('/197\.237\.135\.212/', $_SERVER['REMOTE_ADDR']) || preg_match('/local/', $_SERVER['HTTP_HOST'])){
-// 	print_r($config['global_xss_filtering']); die;
-// }
+$config['global_xss_filtering'] = TRUE;
+
 
 /*
 |--------------------------------------------------------------------------

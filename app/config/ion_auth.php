@@ -1,10 +1,7 @@
 <?php  
 if ( ! defined('BASEPATH')) exit('No direct script access allowed');
-$key = md5('chamasoft_version_three');
-//31784253chamasoftltd
+$key = md5('mbta-test-on-andela');
 if (!defined('SALT')) define('SALT',$key);
-$firebase_api_key = "AAAA9-nLn7E:APA91bFxmWCFsxRi9djNiOk3HznfvGjQ7bhKPouZKZgZkiPtddXRSlNNXdHQR1_RKO4NMsjSF2rTlKQwFckpirDXjwEide8TP5e-2uONkGxC5Dc5ODaxp00fMWtfO-iC5uzWQofDpGAe";
-if (!defined('FIREBASE_API_KEY')) define('FIREBASE_API_KEY',$firebase_api_key);
 /**
 * Name:  Ion Auth
 *

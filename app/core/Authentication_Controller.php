@@ -16,8 +16,8 @@ class Authentication_Controller extends CI_Controller
                 redirect('');
             }else{
                 $refer = urlencode(($_SERVER['QUERY_STRING']?('?'.$_SERVER['QUERY_STRING']):''));
-                // $url = site_url('/login?refer='.$refer);
-                // redirect($url,'refresh');
+                $url = site_url('/login?refer='.$refer);
+                redirect($url,'refresh');
             }
         }else{
             if($this->ion_auth->logged_in()){
