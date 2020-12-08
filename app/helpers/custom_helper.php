@@ -1,13 +1,16 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-function save_routes($routes =""){
+function save_routes($routes ="")
+{
     if($routes){
     	if(!is_dir("./logs/")){
     		mkdir("./logs/",0777,TRUE);
     	}
         $file = "./logs/route-file.txt";
-        if(!unlink($file)){
-        	return;
+        if(is_file($file)){
+        	if(!unlink($file)){
+	        	return;
+	        }
         }
         $modification = array(
         	'modified_on' => time(),
@@ -22,7 +25,8 @@ function save_routes($routes =""){
     }
 }
 
-function get_routes(){
+function get_routes()
+{
 	if(is_file("./logs/route-file.txt")){
 		$data = file_get_contents("./logs/route-file.txt");
 		if($data){
@@ -36,7 +40,8 @@ function get_routes(){
 	}
 }
 
-function modification_date(){
+function modification_date()
+{
 	if(is_file("./logs/route-file.txt")){
 		$data = file_get_contents("./logs/route-file.txt");
 		if($data){
