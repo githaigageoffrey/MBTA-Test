@@ -30,7 +30,7 @@ class Authentication_Controller extends CI_Controller
             }
             
         }
-        $admin_theme_name = 'user';
+        $admin_theme_name = 'users';
         if (!defined('ADMIN_THEME'))
         {
             define('ADMIN_THEME', $admin_theme_name);

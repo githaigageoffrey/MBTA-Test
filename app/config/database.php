@@ -47,9 +47,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |				'ssl_key'    - Path to the private key file
 |				'ssl_cert'   - Path to the public key certificate file
 |				'ssl_ca'     - Path to the certificate authority file
-|				'ssl_capath' - Path to a directory containing trusted CA certificates in PEM format
+|				'ssl_capath' - Path to a directory containing trusted CA certificats in PEM format
 |				'ssl_cipher' - List of *allowed* ciphers to be used for the encryption, separated by colons (':')
-|				'ssl_verify' - TRUE/FALSE; Whether verify the server certificate or not
+|				'ssl_verify' - TRUE/FALSE; Whether verify the server certificate or not ('mysqli' only)
 |
 |	['compress'] Whether or not to use client compression (MySQL only)
 |	['stricton'] TRUE/FALSE - forces 'Strict Mode' connections
@@ -70,26 +70,31 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | The $query_builder variables lets you determine whether or not to load
 | the query builder class.
 */
-$active_group = 'default';
-$query_builder = TRUE;
-if(preg_match('/(\.local)/',$_SERVER['HTTP_HOST'])){
-	$database = "mbtatest";
-	$username = "root";
-	$password = "";
-	$localhost = "localhost";
+
+if (preg_match('/(eazzykikundidemo\.com)/',$_SERVER['HTTP_HOST'])) {
+	$active_group = 'live';
+	$username = "eazzychamademo";
+	$database = "eazzykikundidemo";
+	$password = '3HDQ5egoRHm';
+}else if(preg_match('/(eazzykikundi\.com)/',$_SERVER['HTTP_HOST'])){
+	$active_group = 'live';
+	$username = "eazzykikundi";
+	$database = "eazzykikundi";
+	$password = '3YWhgnap79lwGqvm';
 }else{
-	$database = "";
-	$username = "";
-	$password = "";
-	$localhost = "";
+	$username = 'root';
+	$database = "eazzykikundi";
+	$active_group = 'local';
+	$password = '';
 }
 
-$db['default'] = array(
+$query_builder = TRUE;
+$db[$active_group] = array(
 	'dsn'	=> '',
-	'hostname' => $localhost,
+	'hostname' => 'localhost',
 	'username' => $username,
-	'password' => $password,
-	'database' => $database,
+	'password' =>  $password,
+	'database' =>  $database,
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

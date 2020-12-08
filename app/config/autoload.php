@@ -1,6 +1,5 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
-
 /*
 | -------------------------------------------------------------------
 | AUTO-LOADER
@@ -41,6 +40,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 $autoload['packages'] = array();
 
+
 /*
 | -------------------------------------------------------------------
 |  Auto-load Libraries
@@ -58,7 +58,7 @@ $autoload['packages'] = array();
 |
 |	$autoload['libraries'] = array('user_agent' => 'ua');
 */
-$autoload['libraries'] = array("curl","form_validation","database");
+$autoload['libraries'] = array('ion_auth','asset','template','parser','form_validation','session','database','curl');
 
 /*
 | -------------------------------------------------------------------
@@ -72,14 +72,9 @@ $autoload['libraries'] = array("curl","form_validation","database");
 | Prototype:
 |
 |	$autoload['drivers'] = array('cache');
-|
-| You can also supply an alternative property name to be assigned in
-| the controller:
-|
-|	$autoload['drivers'] = array('cache' => 'cch');
-|
 */
 $autoload['drivers'] = array();
+
 
 /*
 | -------------------------------------------------------------------
@@ -89,7 +84,7 @@ $autoload['drivers'] = array();
 |
 |	$autoload['helper'] = array('url', 'file');
 */
-$autoload['helper'] = array("custom","form","url");
+$autoload['helper'] = array('url','file','inflector','security','custom','email','string','form');
 
 /*
 | -------------------------------------------------------------------
@@ -103,7 +98,7 @@ $autoload['helper'] = array("custom","form","url");
 | config files.  Otherwise, leave it blank.
 |
 */
-$autoload['config'] = array('custom');
+$autoload['config'] = array();
 
 /*
 | -------------------------------------------------------------------
@@ -133,3 +128,4 @@ $autoload['language'] = array();
 |	$autoload['model'] = array('first_model' => 'first');
 */
 $autoload['model'] = array();
+
