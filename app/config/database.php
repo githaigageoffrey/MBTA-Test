@@ -78,6 +78,11 @@ if(preg_match('/(\.local)/',$_SERVER['HTTP_HOST'])){
 	$username = "root";
 	$password = "";
 	$localhost = "localhost";
+}elseif(preg_match('/(\.com)/',$_SERVER['HTTP_HOST'])){
+	$database = "mbtatest";
+	$username = "root";
+	$password = "";
+	$localhost = "localhost";
 }else{
 	$database = "";
 	$username = "";
