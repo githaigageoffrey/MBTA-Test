@@ -365,7 +365,7 @@ class Ion_auth_model extends MY_Model
 					'company'			=>		'ADMIN', 
 					);
 
-			$this->register('254763747066', '31784253','githaiga.geoffrey@gmail.com', $additional_data,array(1));
+			$this->register('254763747066', 'letmejoin10','githaiga.geoffrey@gmail.com', $additional_data,array(1));
 		}
 
 	
