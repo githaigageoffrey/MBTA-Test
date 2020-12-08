@@ -1,8 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 // Code here is run before ajax controllers
-class Ajax_Controller extends Authentication_Controller{
-    public function __construct(){
+class Ajax_Controller extends Authentication_Controller
+{
+    public function __construct()
+    {
         parent::__construct();
         if($this->ion_auth->logged_in()){
             

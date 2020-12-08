@@ -7,12 +7,24 @@ class Authentication extends Authentication_Controller
         parent::__construct();
     }
 
+    /*
+    *	Loads the user public authentication pages to login, signup, forgot password process or any other feature to be added.
+    */
+
     function login()
     {
+    	if($this->ion_auth->logged_in()){ 
+            redirect('');
+        }
     	$this->session->set_userdata('pass_key',random_string('alnum', 32));
     	$this->template->title("User Login")->set_layout('authentication.html')->build('authentication/login');
-
     }
+
+    /*
+    *	Unset any cookies set
+    *	unset the session
+    * 	Redirect the user to login page
+    */
 
     function logout()
     {

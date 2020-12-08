@@ -77,7 +77,8 @@
         $.post({
           url: "<?php echo site_url('ajax/login');?>",
           data : encryptdata(passphrase,a.serializeArray()),
-          success: function (t, i, n, r) {
+          success: function (t, i, n, r) 
+          {
             if(isJson(t)){
               response = $.parseJSON(t);
               if(response.status == '1'){
@@ -92,58 +93,71 @@
                   window.location.href = response.refer;
                 }else if(response.hasOwnProperty('validation_errors')){
                   validation_errors = response.validation_errors;
-                  $.each(validation_errors, function( key, value ) {
+                  $.each(validation_errors, function( key, value ) 
+                  {
                     message+= value+"<br/>";
                   });
                 }else{
                   message = response.message;
                 }
-                setTimeout(function () {
+                setTimeout(function () 
+                {
                   e.removeClass("m-loader m-loader--right m-loader--light").attr("disabled", !1),s.removeClass('disabled'),
-                    function (t, e, a) {
+                    function (t, e, a) 
+                    {
                       var i = $('<div class="m-alert--air mb-5 m-alert alert alert-' + e + ' alert-dismissible" role="alert">\t\t\t<button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>\t\t\t<span></span>\t\t</div>');
                       t.find(".alert").remove(), i.prependTo(t), i.find("span").html(a)
                     }(a, "danger",message)
                 }, 2e3)
               }
             }else{
-              setTimeout(function () {
+              setTimeout(function () 
+              {
                 e.removeClass("m-loader m-loader--right m-loader--light").attr("disabled", !1),s.removeClass('disabled'),
-                  function (t, e, a) {
+                  function (t, e, a) 
+                  {
                     var i = $('<div class="m-alert--air mb-5 m-alert alert alert-' + e + ' alert-dismissible" role="alert">\t\t\t<button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>\t\t\t<span></span>\t\t</div>');
                     t.find(".alert").remove(), i.prependTo(t), i.find("span").html(a)
                   }(a, "danger", "Could not complete processing the request at the moment.")
               }, 2e3)
             }
           },
-          error: function(){
-                setTimeout(function () {
+          error: function()
+          {
+            setTimeout(function () 
+            {
               e.removeClass("m-loader m-loader--right m-loader--light").attr("disabled", !1),s.removeClass('disabled'),
-                function (t, e, a) {
+                function (t, e, a) 
+                {
                   var i = $('<div class="m-alert--air mb-5 m-alert alert alert-' + e + ' alert-dismissible" role="alert">\t\t\t<button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>\t\t\t<span></span>\t\t</div>');
                   t.find(".alert").remove(), i.prependTo(t),i.find("span").html(a)
                 }(a, "danger", "Could not complete processing the request at the moment.")
             }, 2e3)
-            },
-            always: function(){
-              setTimeout(function () {
+          },
+          always: function()
+          {
+            setTimeout(function () 
+            {
               e.removeClass("m-loader m-loader--right m-loader--light").attr("disabled", !1),s.removeClass('disabled'),
-                function (t, e, a) {
+                function (t, e, a) 
+                {
                   var i = $('<div class="m-alert--air mb-5 m-alert alert alert-' + e + ' alert-dismissible" role="alert">\t\t\t<button type="button" class="close" data-dismiss="alert" aria-label="Close"></button>\t\t\t<span></span>\t\t</div>');
                   t.find(".alert").remove(), i.prependTo(t),i.find("span").html(a)
                 }(a, "danger", "Could not complete processing the request at the moment.")
             }, 2e3)
-            }
+          }
         }))
       })
     };
     return {
-      init: function () {
+      init: function () 
+      {
         t()
       }
     }
   }();
-  jQuery(document).ready(function () {
+  jQuery(document).ready(function () 
+  {
     if(isMobile){
       $('.toggle_password_visibility').hide();
     }

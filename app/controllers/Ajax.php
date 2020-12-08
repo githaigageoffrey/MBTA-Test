@@ -1,12 +1,22 @@
 <?php if(!defined('BASEPATH')) exit('You are not allowed to view this script');
 class Ajax extends Ajax_Controller
 {
+    /*
+    * Entending the parent controller, the class implements authentication calls via ajx
+    */
 
 	function __construct()
     {
         parent::__construct();
         $this->load->library('cryptojs');
     }
+
+    /*
+    * Login a user to the project
+    * Un-encrpryt the request using a passphrase unique for the request
+    * Set rules the user input
+    * Login user to the project and redirect to home page
+    */
 
     function login()
     {
@@ -26,7 +36,6 @@ class Ajax extends Ajax_Controller
         if(empty($response)){
     		$this->form_validation->set_rules('identity', 'Email Address', 'required|trim|valid_email');
             $this->form_validation->set_rules('password', 'Password', 'required|trim');
-            $language_id = isset($_COOKIE['language_id'])?($_COOKIE['language_id']?:''):'';
             if($this->form_validation->run()){
                 $identity = $this->input->post('identity');
                 $password = $this->input->post('password');
@@ -59,7 +68,6 @@ class Ajax extends Ajax_Controller
             }
         }
         echo json_encode($response);
-
     }
 
 }?>

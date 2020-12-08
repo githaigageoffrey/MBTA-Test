@@ -30,7 +30,6 @@ class Home extends Authentication_Controller
 	{
 		parent::__construct();
 		$this->load->model('routes_m');
-		//$this->template = "template/default";
 		$this->data['subways'] = $this->subways;
 	}
 

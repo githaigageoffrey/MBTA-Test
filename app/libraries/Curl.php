@@ -9,6 +9,13 @@ class Curl
 		$this->ci= & get_instance();
 	}
 
+	/*
+	* A curl request to the server
+	* check for any errors
+	* modification date
+	* then saves the file locally for any updates/ usage
+	*/
+	
 	function fetch_routes()
 	{
 		$url = $this->ci->config->item('api_url').$this->ci->config->item('route_url');

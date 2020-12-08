@@ -57,60 +57,8 @@ class MY_Form_validation extends CI_Form_validation
 		return htmlentities($str, ENT_QUOTES, 'UTF-8');
 	}
 
-
-	function valid_phone($phone=0){
-		if(preg_match("/^[\+0-9\-\(\)\s]*$/", $phone)) 
-		{
-			if(strlen($phone)<14 && strlen($phone)>8)
-			{
-				return  $phone;
-			}
-			else
-			{
-				return (bool) filter_var($phone, FILTER_VALIDATE_EMAIL);
-				return FALSE;
-			}
-		}
-		else
-		{
-			return (bool) filter_var($phone, FILTER_VALIDATE_EMAIL);
-			return FALSE;
-		}
-	}
-
-	function currency($str){
-	    if(preg_match('/^[0-9,.]+$/', $str)){
-        $str = floatval(str_replace(',','',$str));
-	        if($str>0){
-	            return $str;
-	        }else{
-	        	return (bool) filter_var($str, FILTER_VALIDATE_EMAIL);
-	            return FALSE;
-	        }
-	    }else{
-	    	return (bool) filter_var($str, FILTER_VALIDATE_EMAIL);
-	        return FALSE;
-	    }
-	}
-
-	function date($date=0){
-		if($date){
-			$new_date = strtotime($date);
-			if($new_date){
-				return $new_date;
-			}else{
-				if(is_numeric($date)){
-					return $date;
-				}else{
-					return FALSE;
-				}
-			}
-		}else{
-			return FALSE;
-		}
-	}
-
-	function xss_clean($str=''){
+	function xss_clean($str='')
+	{
 		//print_r($str); die();
 		return  filter_var(htmlentities($str), FILTER_SANITIZE_STRING);
 	}
