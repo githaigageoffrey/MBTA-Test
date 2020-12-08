@@ -1,4 +1,6 @@
-<h4>Subways With Most and Least Stops</h4>
+<div class="row" style="margin-top:25px;">
+  <h4>Subways With Most and Least Stops</h4>
+</div>
 <div class="row" style="margin-top:25px;">
     <?php foreach ($subway as $key => $routes) {
       if(isset($subways[$key])){

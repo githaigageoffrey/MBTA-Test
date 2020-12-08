@@ -1,4 +1,6 @@
-<h4>User input stops</h4>
+<div class="row" style="margin-top:25px;">
+	<h4>User input stops</h4>
+</div>
 <div class="row justify-content-md-center" style="margin-top:25px;">
 	<div class="col-md-6">
 		<?php if($error){

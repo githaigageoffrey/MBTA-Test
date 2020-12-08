@@ -1,6 +1,7 @@
-<h4>Download  Vs Rely on Server</h4>
-<h6>"subway" routes:
-"Light Rail" (type 0) and "Heavy Rail" (type 1)</h6>
+<div class="row" style="margin-top:25px;">
+  <h5>Download and Storing Json File Vs Rely on Server</h5>
+  <!-- <h6>"subway" routes: "Light Rail" (type 0) and "Heavy Rail" (type 1)</h6> -->
+</div>
 <div class="row" style="margin-top:25px;">
   <div class="col-md-6">
     <div class="table-responsive">
