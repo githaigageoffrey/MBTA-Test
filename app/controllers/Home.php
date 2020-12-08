@@ -3,26 +3,13 @@
 class Home extends Authentication_Controller
 {
 
+	/*
+	* Dynamic data but defined as static. This could also be saved in a database that keeps on being updated
+	*
+	*/
 	protected $subways = array(
 		0 => "Light Rail",
 		1 => "Heavy Rail"
-	);
-
-	protected $destinations = array(
-		1 => 'Ashmont Braintree',
-		2 => 'Alewife',
-		3 => 'Forest Hills',
-		4 => 'Oak Grove',
-		5 => 'Bowdoin',
-		6 => 'Wonderland',
-		7 => "Mattapan",
-		8 => "Boston College",
-		9 => "Park Street",
-		10 => "Cleveland Circle",
-		11 => "North Station",
-		12 => "Riverside",
-		13 => "Heath Street",
-		14 => "North Station",
 	);
 	protected $data;
 
@@ -55,7 +42,6 @@ class Home extends Authentication_Controller
 	function question_three()
 	{
 		$error = "";
-		$this->data["destinations"] = $this->destinations;
 		$results = array();
 		if($_POST){
 			$from = $this->input->post('from');
