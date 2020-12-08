@@ -29,15 +29,15 @@ class Testcases extends Authentication_Controller
 	{
 		$rail_most_stops = $this->question_two_most_stops();
 		$most_stop_defination = 'Question 2: Subway with most stops';
-		$most_stop_result = 'Light Rail : 5';
+		$most_stop_result = '0 : 5 - Most';
 
 		$rail_least_stops = $this->question_two_least_stops();
 		$least_stop_defination = 'Question 2: Subway with least stops';
-		$least_stop_result = 'Heavy Rail : 3';
+		$least_stop_result = '1 : 3 - Least';
 
 		$rail_stop_connections = $this->question_two_stop_connection();
 		$least_stop_connection_defination = 'Question 2: List of stops connecting two or more';
-		$least_stop_connection_result = 'Mattapan : Ashmont : Alewife';
+		$least_stop_connection_result = 'Mattapan : Ashmont Braintree : Alewife';
 
 
 		$this->unit->run($rail_most_stops, $most_stop_result, $most_stop_defination);
@@ -72,17 +72,40 @@ class Testcases extends Authentication_Controller
 
 	function question_two_most_stops()
 	{
+		$stops = $this->routes_m->get_routes_and_stops();
+		$counts = $stops['count'];
+		foreach ($counts as $key=>$count) {
+			if(preg_match('/most/i', $count)){
+				return $key.' : '.$count;
+			}
+		}
 
 	}
 
 	function question_two_least_stops()
 	{
-
+		$stops = $this->routes_m->get_routes_and_stops();
+		$counts = $stops['count'];
+		foreach ($counts as $key=>$count) {
+			if(preg_match('/least/i', $count)){
+				return $key.' : '.$count;
+			}
+		}
 	}
 
 	function question_two_stop_connection()
 	{
-
+		$combinations = $this->routes_m->route_combination();
+		//print_r($combinations);
+		$routes = "";
+		foreach ($combinations as $key => $combination) {
+			if($routes){
+				$routes.=" , ".$combination['from']." : ".$combination['stop']." : ".$combination['to'];
+			}else{
+				$routes=$combination['from']." : ".$combination['stop']." : ".$combination['to'];
+			}
+		}
+		return $routes;
 	}
 
 	function question_three($from='',$to='')
