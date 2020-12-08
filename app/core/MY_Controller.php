@@ -12,8 +12,8 @@ class MY_Controller extends CI_Controller
 
 	public function __construct(){
 		parent::__construct();
-		$this->template->add_theme_location(ADDONPATH.'frontend_themes/');
-		$this->benchmark->mark('my_controller_end');
+		// $this->template->add_theme_location(ADDONPATH.'frontend_themes/');
+		// $this->benchmark->mark('my_controller_end');
 	}
 }
 

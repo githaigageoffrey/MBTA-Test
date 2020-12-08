@@ -126,7 +126,7 @@ class Routes_m extends CI_Model
 				$station = $arr[$result];
 				if($station['type'] == 1 || $station['type']==0){
 					if($answer){
-						$answer.=" --> ".$station['name'];
+						$answer.=" , ".$station['name'];
 					}else{
 						$answer=$station['name'];
 					}
@@ -136,7 +136,7 @@ class Routes_m extends CI_Model
 		if(!$answer){
 			$answer = $st_answer;
 		}
-		return $answer;
+		return $from.' to '.$destination.' --> '.$answer;
 	}
 
 	function sequential_search($from='',$froms = array(),$tos=array(),$results = array(),$destination='',$places=array(),$unique_key=0)

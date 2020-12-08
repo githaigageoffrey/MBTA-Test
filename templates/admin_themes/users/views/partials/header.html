@@ -80,6 +80,35 @@
             </a>
           </li>
         </ul>
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+          <span>Test Cases</span>
+          <a class="d-flex align-items-center text-muted" href="#" aria-label="Add a new report">
+            <span data-feather="plus-circle"></span>
+          </a>
+        </h6>
+        <ul class="nav flex-column mb-2">
+          <li class="nav-item">
+            <?php $url = site_url('testcases');?>
+            <a class="nav-link <?php echo ($current_url==$url)?'active':''?>" href="<?php echo $url;?>">
+              <span data-feather="padlock"></span>
+              Question One
+            </a>
+          </li>
+          <li class="nav-item">
+            <?php $url = site_url('testcases/test_case_two');?>
+            <a class="nav-link <?php echo ($current_url==$url)?'active':''?>" href="<?php echo $url;?>">
+              <span data-feather="padlock"></span>
+              Question Two
+            </a>
+          </li>
+          <li class="nav-item">
+            <?php $url = site_url('testcases/test_case_three');?>
+            <a class="nav-link <?php echo ($current_url==$url)?'active':''?>" href="<?php echo $url;?>">
+              <span data-feather="padlock"></span>
+              Question Three
+            </a>
+          </li>
+        </ul>
       </div>
     </nav>
     <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
