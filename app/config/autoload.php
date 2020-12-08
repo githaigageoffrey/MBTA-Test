@@ -98,7 +98,7 @@ $autoload['helper'] = array('url','file','inflector','security','custom','email'
 | config files.  Otherwise, leave it blank.
 |
 */
-$autoload['config'] = array();
+$autoload['config'] = array("custom");
 
 /*
 | -------------------------------------------------------------------

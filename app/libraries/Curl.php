@@ -1,13 +1,16 @@
 <?php 
 if (!defined('BASEPATH')) exit('No direct script access allowed');
-class Curl{
+class Curl
+{
 	protected $ci;
 
-	public function __construct(){
+	public function __construct()
+	{
 		$this->ci= & get_instance();
 	}
 
-	function fetch_routes(){
+	function fetch_routes()
+	{
 		$url = $this->ci->config->item('api_url').$this->ci->config->item('route_url');
 		$modified_on = modification_date()?:0;
 		if($modified_on){
@@ -50,7 +53,8 @@ class Curl{
 		}
 	}
 
-	function get(){
+	function get()
+	{
 
 	}
 
